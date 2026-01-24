@@ -16,9 +16,13 @@ export {
   createPlugin,
 } from './plugins';
 
+// Utils
+export { playRandomFireworkSound, preloadSounds } from './utils/sound';
+
 // Types
 export type {
   Particle,
+  ParticleShape,
   FireworkConfig,
   FireworkProps,
   FireworkCanvasProps,

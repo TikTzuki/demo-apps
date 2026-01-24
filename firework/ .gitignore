@@ -27,7 +27,7 @@ Thumbs.db
 coverage/
 
 # React/Vite example app
-example/node_modules/
+node_modules
 example/dist/
 example/.vite/
 

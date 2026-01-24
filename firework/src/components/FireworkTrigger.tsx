@@ -1,17 +1,30 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FireworkTriggerProps, Particle, DEFAULT_CONFIG } from '../types';
+import { FireworkTriggerProps } from '../types';
 import { useFirework } from '../hooks/useFirework';
+import { preloadSounds } from '../utils/sound';
+
+export interface FireworkTriggerPropsWithSound extends FireworkTriggerProps {
+  sound?: boolean;
+}
 
 export function FireworkTrigger({
   config,
   children,
   className,
   style,
-}: FireworkTriggerProps) {
+  sound = true,
+}: FireworkTriggerPropsWithSound) {
   const triggerRef = useRef<HTMLDivElement>(null);
-  const { particles, launch } = useFirework(config);
+  const mergedConfig = { ...config, sound };
+  const { particles, launch } = useFirework(mergedConfig);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (sound) {
+      preloadSounds();
+    }
+  }, [sound]);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -39,28 +52,50 @@ export function FireworkTrigger({
     if (!portalContainer || particles.length === 0) return null;
 
     return createPortal(
-      <>
+      <svg
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
+      >
         {particles.map(p => {
           const alpha = p.life / p.maxLife;
+
+          if (p.shape === 'line' && p.length !== undefined && p.angle !== undefined) {
+            const endX = p.x - Math.cos(p.angle) * p.length;
+            const endY = p.y - Math.sin(p.angle) * p.length;
+
+            return (
+              <line
+                key={p.id}
+                x1={p.x}
+                y1={p.y}
+                x2={endX}
+                y2={endY}
+                stroke={p.color}
+                strokeWidth={p.size}
+                strokeLinecap="round"
+                opacity={alpha}
+              />
+            );
+          }
+
           return (
-            <div
+            <circle
               key={p.id}
-              style={{
-                position: 'absolute',
-                left: p.x,
-                top: p.y,
-                width: p.size,
-                height: p.size,
-                borderRadius: '50%',
-                backgroundColor: p.color,
-                opacity: alpha,
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-              }}
+              cx={p.x}
+              cy={p.y}
+              r={p.size}
+              fill={p.color}
+              opacity={alpha}
             />
           );
         })}
-      </>,
+      </svg>,
       portalContainer
     );
   };

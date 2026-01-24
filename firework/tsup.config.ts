@@ -8,4 +8,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   external: ['react', 'react-dom'],
+  loader: {
+    '.mp3': 'dataurl',
+  },
 });

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { FireworkCanvasProps, DEFAULT_CONFIG } from '../types';
+import { FireworkCanvasProps } from '../types';
 import { useFirework } from '../hooks';
+import { preloadSounds } from '../utils/sound';
 
 export function FireworkCanvas({
   config,
@@ -10,10 +11,18 @@ export function FireworkCanvas({
   height,
   className,
   style,
+  sound = true,
 }: FireworkCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { particles, launch, config: mergedConfig } = useFirework(config);
+  const mergedConfig = { ...config, sound };
+  const { particles, launch } = useFirework(mergedConfig);
+
+  useEffect(() => {
+    if (sound) {
+      preloadSounds();
+    }
+  }, [sound]);
 
   const getSize = useCallback(() => {
     if (containerRef.current) {
@@ -61,11 +70,26 @@ export function FireworkCanvas({
 
     particles.forEach(p => {
       const alpha = p.life / p.maxLife;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
       ctx.globalAlpha = alpha;
-      ctx.fill();
+
+      if (p.shape === 'line' && p.length !== undefined && p.angle !== undefined) {
+        const endX = p.x - Math.cos(p.angle) * p.length;
+        const endY = p.y - Math.sin(p.angle) * p.length;
+
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.size;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+
       ctx.globalAlpha = 1;
     });
   }, [particles, getSize]);
