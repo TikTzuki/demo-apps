@@ -44,6 +44,7 @@ export interface FireworkProps {
 export interface FireworkCanvasProps extends FireworkProps {
     width?: number;
     height?: number;
+    children?: ReactNode;
 }
 
 export interface FireworkTriggerProps {

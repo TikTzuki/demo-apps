@@ -11,6 +11,7 @@ import {
 } from '@tiktuzki/firework';
 import './App.css';
 import {randomPlugin} from "../../src/plugins";
+import {HappyNewYear} from "./HappyNewYear";
 
 
 function App() {
@@ -109,9 +110,25 @@ function App() {
                     </div>
                 </section>
 
+                {/* Children Demo Section */}
+                <section className="demo-section">
+                    <h2>4. FireworkCanvas with Children</h2>
+                    <p>Fireworks display above the content while keeping it interactive. Click anywhere or use the
+                        button!</p>
+                    <div className="canvas-container">
+                        <FireworkCanvas
+                            autoLaunch={true}
+                            launchInterval={1500}
+                            config={applyPlugin(randomPlugin)}
+                        >
+                            <HappyNewYear/>
+                        </FireworkCanvas>
+                    </div>
+                </section>
+
                 {/* Code Example */}
                 <section className="demo-section">
-                    <h2>4. Usage Example</h2>
+                    <h2>5. Usage Example</h2>
                     <div className="code-block">
             <pre>{`import { FireworkCanvas, FireworkTrigger, applyPlugin, goldenPlugin } from '@tiktuzki/firework';
 
@@ -121,7 +138,12 @@ function App() {
 // Trigger mode with plugin
 <FireworkTrigger config={applyPlugin(goldenPlugin)}>
   <button>Click me! 🎉</button>
-</FireworkTrigger>`}</pre>
+</FireworkTrigger>
+
+// With children - fireworks above, content interactive
+<FireworkCanvas autoLaunch config={applyPlugin(goldenPlugin)}>
+  <YourComponent />  {/* Clickable and interactive! */}
+</FireworkCanvas>`}</pre>
                     </div>
                 </section>
             </div>
