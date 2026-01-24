@@ -1,0 +1,1 @@
+export { useFirework } from './useFirework';

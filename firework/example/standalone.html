@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firework Demo - Standalone</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    #firework-canvas {
+      display: block;
+      width: 100vw;
+      height: calc(100vh - 200px);
+      cursor: crosshair;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-auto {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .btn-golden {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+    }
+
+    .btn-rainbow {
+      background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+    }
+
+    .btn-neon {
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+    }
+
+    .btn-pastel {
+      background: linear-gradient(135deg, #ffb3ba, #bae1ff);
+      color: #333;
+    }
+
+    .btn-cosmic {
+      background: linear-gradient(135deg, #0a0a2e, #e94560);
+    }
+
+    .info {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 30px;
+      border-radius: 8px;
+      color: #333;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎆 Firework Demo 🎆</h1>
+    <p class="subtitle">Click anywhere or use the buttons below!</p>
+  </div>
+
+  <div class="info">
+    👆 Click anywhere on the screen to launch fireworks!
+  </div>
+
+  <canvas id="firework-canvas"></canvas>
+
+  <div class="controls">
+    <button class="btn-auto" onclick="toggleAuto()">Toggle Auto Launch</button>
+    <button class="btn-golden" onclick="launchTheme('golden')">Golden</button>
+    <button class="btn-rainbow" onclick="launchTheme('rainbow')">Rainbow</button>
+    <button class="btn-neon" onclick="launchTheme('neon')">Neon</button>
+    <button class="btn-pastel" onclick="launchTheme('pastel')">Pastel</button>
+    <button class="btn-cosmic" onclick="launchTheme('cosmic')">Cosmic</button>
+  </div>
+
+  <script>
+    // Firework Engine
+    class FireworkEngine {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.particles = [];
+        this.particleId = 0;
+        this.autoLaunch = false;
+        this.autoInterval = null;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.canvas.addEventListener('click', (e) => this.handleClick(e));
+
+        this.animate();
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight - 200;
+      }
+
+      handleClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        this.launch(x, y);
+      }
+
+      launch(x, y, config = {}) {
+        const defaults = {
+          particleCount: 50,
+          minSize: 2,
+          maxSize: 6,
+          colors: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3', '#ff1493', '#00ffff', '#ffd700'],
+          gravity: 0.1,
+          friction: 0.99,
+          spread: Math.PI * 2,
+          initialVelocity: 8
+        };
+
+        const cfg = { ...defaults, ...config };
+
+        for (let i = 0; i < cfg.particleCount; i++) {
+          const angle = Math.random() * cfg.spread - cfg.spread / 2 - Math.PI / 2;
+          const velocity = cfg.initialVelocity * (0.5 + Math.random() * 0.5);
+          const size = cfg.minSize + Math.random() * (cfg.maxSize - cfg.minSize);
+          const maxLife = 60 + Math.random() * 60;
+
+          this.particles.push({
+            id: this.particleId++,
+            x, y,
+            vx: Math.cos(angle) * velocity,
+            vy: Math.sin(angle) * velocity,
+            color: cfg.colors[Math.floor(Math.random() * cfg.colors.length)],
+            size,
+            life: maxLife,
+            maxLife,
+            gravity: cfg.gravity,
+            friction: cfg.friction
+          });
+        }
+      }
+
+      update() {
+        this.particles = this.particles.filter(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= p.friction;
+          p.vy = p.vy * p.friction + p.gravity;
+          p.life -= 1;
+          return p.life > 0;
+        });
+      }
+
+      render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.particles.forEach(p => {
+          const alpha = p.life / p.maxLife;
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          this.ctx.fillStyle = p.color;
+          this.ctx.globalAlpha = alpha;
+          this.ctx.fill();
+        });
+
+        this.ctx.globalAlpha = 1;
+      }
+
+      animate() {
+        this.update();
+        this.render();
+        requestAnimationFrame(() => this.animate());
+      }
+
+      toggleAutoLaunch() {
+        this.autoLaunch = !this.autoLaunch;
+
+        if (this.autoLaunch) {
+          this.autoInterval = setInterval(() => {
+            const x = Math.random() * this.canvas.width;
+            const y = Math.random() * (this.canvas.height * 0.5) + this.canvas.height * 0.2;
+            this.launch(x, y);
+          }, 1500);
+        } else {
+          clearInterval(this.autoInterval);
+        }
+      }
+    }
+
+    // Theme configurations
+    const themes = {
+      golden: {
+        colors: ['#ffd700', '#ffb700', '#ffa500', '#ff8c00', '#fff8dc'],
+        particleCount: 60,
+        minSize: 3,
+        maxSize: 7,
+        initialVelocity: 10
+      },
+      rainbow: {
+        colors: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'],
+        particleCount: 80,
+        minSize: 2,
+        maxSize: 5,
+        initialVelocity: 8
+      },
+      neon: {
+        colors: ['#00ffff', '#ff00ff', '#00ff00', '#ff1493', '#7fff00'],
+        particleCount: 70,
+        minSize: 2,
+        maxSize: 6,
+        initialVelocity: 9
+      },
+      pastel: {
+        colors: ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff'],
+        particleCount: 55,
+        minSize: 3,
+        maxSize: 8,
+        initialVelocity: 7
+      },
+      cosmic: {
+        colors: ['#0a0a2e', '#16213e', '#1a1a2e', '#e94560', '#533483'],
+        particleCount: 100,
+        minSize: 1,
+        maxSize: 4,
+        initialVelocity: 12
+      }
+    };
+
+    // Initialize
+    const canvas = document.getElementById('firework-canvas');
+    const engine = new FireworkEngine(canvas);
+
+    // Global functions for buttons
+    function toggleAuto() {
+      engine.toggleAutoLaunch();
+    }
+
+    function launchTheme(themeName) {
+      const x = canvas.width / 2;
+      const y = canvas.height / 2;
+      engine.launch(x, y, themes[themeName]);
+    }
+
+    // Hide info after 3 seconds
+    setTimeout(() => {
+      const info = document.querySelector('.info');
+      if (info) {
+        info.style.transition = 'opacity 0.5s ease';
+        info.style.opacity = '0';
+        setTimeout(() => info.remove(), 500);
+      }
+    }, 3000);
+  </script>
+</body>
+</html>
