@@ -1,7 +1,5 @@
-import {useState} from 'react';
-import {applyPlugin, FireworkCanvas} from '@tiktuzki/firework';
+import {applyPlugin, FireworkCanvas, randomPlugin} from '@tiktuzki/firework';
 import './App.css';
-import {randomPlugin} from "../../src/plugins";
 import {HappyNewYear} from "./HappyNewYear";
 
 
