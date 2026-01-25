@@ -8,7 +8,6 @@ function App() {
         <div className="app">
             <header className="header">
                 <h1>🎆 Happy new year 🎆</h1>
-                <p className="subtitle"> Tết này pháo hoa tưng bừng</p>
             </header>
 
             <div className="container">

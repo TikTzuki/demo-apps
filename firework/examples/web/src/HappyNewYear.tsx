@@ -58,14 +58,7 @@ const buttonStyle: CSSProperties = {
     transition: 'all 0.3s ease',
 };
 
-const buttonHoverStyle: CSSProperties = {
-    ...buttonStyle,
-    transform: 'translateY(-3px) scale(1.05)',
-    boxShadow: '0 12px 35px rgba(255, 107, 107, 0.6)',
-};
-
 export function HappyNewYear() {
-    const [isHovered, setIsHovered] = useState(false);
     const [clickCount, setClickCount] = useState(0);
 
     const messages = [
@@ -89,23 +82,6 @@ export function HappyNewYear() {
             <p style={messageStyle}>
                 {messages[clickCount % messages.length]}
             </p>
-            <button
-                style={isHovered ? buttonHoverStyle : buttonStyle}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onClick={handleClick}
-            >
-                Send Wishes
-            </button>
-            {clickCount > 0 && (
-                <p style={{
-                    marginTop: '20px',
-                    color: 'rgba(255, 215, 0, 0.8)',
-                    fontSize: '0.9rem',
-                }}>
-                    You've sent {clickCount} wish{clickCount > 1 ? 'es' : ''}!
-                </p>
-            )}
         </div>
     );
 }
