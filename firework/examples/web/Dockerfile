@@ -18,7 +18,7 @@ COPY examples/web/index.html ./
 COPY examples/web/src ./src
 
 # Install example dependencies (excluding the workspace dependency)
-RUN npm install --omit=optional
+RUN npm install
 
 # Manually copy the built library
 RUN mkdir -p node_modules/@tiktuzki/firework && \
