@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@tiktuzki/firework': path.resolve(__dirname, '../src/index.ts'),
     },
   },
   server: {

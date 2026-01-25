@@ -1,6 +1,6 @@
 {
   "name": "@tiktuzki/firework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A React library with pluggable firework components featuring random colors and sizes",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

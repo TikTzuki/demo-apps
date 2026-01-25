@@ -1,6 +1,6 @@
-import {applyPlugin, FireworkCanvas, randomPlugin} from '@tiktuzki/firework';
 import './App.css';
 import {HappyNewYear} from "./HappyNewYear";
+import {applyPlugin, FireworkCanvas, randomPlugin} from "@tiktuzki/firework";
 
 
 function App() {
