@@ -17,8 +17,9 @@ COPY examples/web/vite.config.ts ./
 COPY examples/web/index.html ./
 COPY examples/web/src ./src
 
-# Install example dependencies (excluding the workspace dependency)
-RUN npm install
+# Remove workspace dependency from package.json and install
+RUN sed -i '/"@tiktuzki\/firework": "workspace:\*"/d' package.json && \
+    npm install
 
 # Manually copy the built library
 RUN mkdir -p node_modules/@tiktuzki/firework && \
