@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  checkin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hackathon-checkin
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount data directory to persist check-in data
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
