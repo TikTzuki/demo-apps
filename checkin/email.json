@@ -1,0 +1,482 @@
+[
+  {
+    "name": "Trang Ngô",
+    "email": "phuongtrangngo313@gmail.com",
+    "team": "Team 10"
+  },
+  {
+    "name": "Duy Nguyễn (Data Engineer)",
+    "email": "duy.n2@newera.inc",
+    "team": "Team 12"
+  },
+  {
+    "name": "Lê Hoàng Đức Liêm",
+    "email": "contact@liemlhd.com",
+    "team": "Team 9"
+  },
+  {
+    "name": "HƯNG ĐỖ THÁI",
+    "email": "hungdothai2412@gmail.com",
+    "team": "Team 14"
+  },
+  {
+    "name": "Thảo (Accountant)",
+    "email": "thao.lt@newera.inc",
+    "team": "Team 14"
+  },
+  {
+    "name": "Long (Backend Engineer)",
+    "email": "long.tran@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Việt (MKT Community)",
+    "email": "duvi@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Cường (Legal Counsel)",
+    "email": "cuong.tu@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Oanh (Customer Support)",
+    "email": "oanh.nguyen@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Linh (Customer Support)",
+    "email": "linh.pham@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Hien (CS Lead)",
+    "email": "hien.nguyen@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Nguyen Viet Anh (Graphic Design Intern)",
+    "email": "anh.nv@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Dương Thu Thủy (Specialist - Growth Marketing)",
+    "email": "thuy.duong@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Khánh (Media Editor)",
+    "email": "khanh.tran@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Tân (Lead - Backend Engineer)",
+    "email": "tan.nguyen@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Duy (Specialist - Researcher)",
+    "email": "duy.n@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Nam (Manager - Accountant)",
+    "email": "nancy@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Thiện (Backend Engineer)",
+    "email": "tom@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Nhi (Solution Desginer)",
+    "email": "nhi.nguyen@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Nhung (Solution Desginer)",
+    "email": "nhung.dinh@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Hien (Sr. Associate - Fraud)",
+    "email": "hien.nm@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Trấn (Backend Engineer)",
+    "email": "brian.n@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Long (Frontend Engineer)",
+    "email": "tony.n@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Tính (Backend Engineer)",
+    "email": "ryan@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Tài (Backend Engineer)",
+    "email": "terry@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Huyền (Tech PMO)",
+    "email": "huyen.do@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Quang (Director - Partnership)",
+    "email": "quang@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Thái (Sr. Director - Operations)",
+    "email": "thai@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Long (CBO)",
+    "email": "long@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Lộc (Manager - Engieneering - Platform)",
+    "email": "luke@f8a.io",
+    "team": "Team 14"
+  },
+  {
+    "name": "Thuận (Marketing Designer)",
+    "email": "tony@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Nhi (Product Designer)",
+    "email": "nhi.du@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Dũng (Solution Desginer)",
+    "email": "dung.nguyen@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Linh (Admin Executive)",
+    "email": "lina@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Thái Dương Nguyễn",
+    "email": "thaiduong.nguyen.lsc@gmail.com",
+    "team": "Team 8"
+  },
+  {
+    "name": "Phước Sang Trần",
+    "email": "phuocsang.tran.lsc@gmail.com",
+    "team": "Team 5"
+  },
+  {
+    "name": "Duy (Director - Finance)",
+    "email": "brian@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Tân (Frontend Engineer)",
+    "email": "ton@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Chi Trần (MSN)",
+    "email": "tchitran419@gmail.com",
+    "team": "Team 2"
+  },
+  {
+    "name": "THINH TRUONG",
+    "email": "thinhtruong.brand@gmail.com",
+    "team": "Team 11"
+  },
+  {
+    "name": "Sen Nguyễn (MSN)",
+    "email": "sennguyen662@gmail.com",
+    "team": "Team 14"
+  },
+  {
+    "name": "Nhật (Sr. Manager - Data & Integration)",
+    "email": "nhat.vo@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Nhut (Sr. Manager - Customer Support)",
+    "email": "nhut.doan@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Hải (Lead - MIS Engineer)",
+    "email": "hai.nguyen@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Trung (Sr. Director - Infra & Sec)",
+    "email": "trung@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Đặng Duy Khang (Senior Associate - Financial Ops)",
+    "email": "khang.dang@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Vũ (MIS Engineer)",
+    "email": "vu.nguyen@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Nam (Sr. MIS Engineer)",
+    "email": "nam.nguyen@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Huy (Director - Infra & MIS)",
+    "email": "anthony@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Hanh (Sr. Director - Legal & Corporate)",
+    "email": "peter@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Anh (Backend Engineer)",
+    "email": "anh.pham@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Oanh (C&B)",
+    "email": "oanh.ntk@f8a.io",
+    "team": "Team 14"
+  },
+  {
+    "name": "Huy (Sr. Backend Engineer)",
+    "email": "huy.vo@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Hằng (Sr. Manager - HR/Admin)",
+    "email": "phoebe@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Thuỷ (Lead - Data Analysis)",
+    "email": "juli.pham@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Hùng (Performance MKT)",
+    "email": "hung.vu@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Hằng (Recruitment)",
+    "email": "hang.nguyen@f8a.io",
+    "team": "Team 8"
+  },
+  {
+    "name": "Hà (Recruitment)",
+    "email": "hana@f8a.io",
+    "team": "Team 14"
+  },
+  {
+    "name": "Linh (Sr. Manager - Recruitment)",
+    "email": "lynn@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Huy (Sr. Backend Engineer)",
+    "email": "huy.vu@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Tính (GenAI Engineer)",
+    "email": "tinh.do@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Nguyên (Manager - PMO)",
+    "email": "nguyen.nguyen@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Hoàng (MIS Engineer)",
+    "email": "hoang.nguyen@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Vọng (SRE Engineer)",
+    "email": "vong.huynh@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Phú (Manager - SRE (DevOps))",
+    "email": "phu.le@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Tuấn (CTO)",
+    "email": "tuan@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Luân (Sr. Frontend Engineer)",
+    "email": "luan.nguyen@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Tùng (MKT Research)",
+    "email": "haitani@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Thư (Manager - Affiliate & Campaign)",
+    "email": "thu.do@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Sỹ (GenAI Engineer)",
+    "email": "sy.van@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Thư (MKT Planner)",
+    "email": "thu.ho@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Thuý (Product Designer)",
+    "email": "thuy.luu@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Ngọc (Manager - Solution Design)",
+    "email": "ruby.lh@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Khánh (Lead - Digital)",
+    "email": "khanh.nguyen@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Quỳnh (Sr. QA Engineer)",
+    "email": "quinn@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Huy (Security Platform Engineer)",
+    "email": "huy.tran@f8a.io",
+    "team": "Team 6"
+  },
+  {
+    "name": "Lực (Director - Security)",
+    "email": "luc.nguyen@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Điện (Lead - Readteam)",
+    "email": "dien.pham@f8a.io",
+    "team": "Team 2"
+  },
+  {
+    "name": "Thống (Backend Engineer)",
+    "email": "travis.tran@f8a.io",
+    "team": "Team 3"
+  },
+  {
+    "name": "Thuận (Frontend Engineer)",
+    "email": "thuan.doan@f8a.io",
+    "team": "Team 4"
+  },
+  {
+    "name": "Linh (Manager - Growth)",
+    "email": "linh.ta@f8a.io",
+    "team": "Team 5"
+  },
+  {
+    "name": "Luân (Fullstack Engineer)",
+    "email": "dylan@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Nhi (QA Engineer)",
+    "email": "lemon@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Hòa (Lead - Quality)",
+    "email": "bebe@f8a.io",
+    "team": "Team 14"
+  },
+  {
+    "name": "Chí (Sr. QA Engineer)",
+    "email": "andy@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Tấn (Backend Engineer)",
+    "email": "tan.na@f8a.io",
+    "team": "Team 7"
+  },
+  {
+    "name": "Anh (QA Engineer)",
+    "email": "anh.dang@f8a.io",
+    "team": "Team 12"
+  },
+  {
+    "name": "Huy (Frontend Engineer)",
+    "email": "kai.h@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Huy (Director - Quality)",
+    "email": "dale@f8a.io",
+    "team": "Tiên Winx"
+  },
+  {
+    "name": "Kiệt (Frontend Engineer)",
+    "email": "kiet.nguyen@f8a.io",
+    "team": "Team 1"
+  },
+  {
+    "name": "Thiên (Fullstack Engineer)",
+    "email": "thien.nguyen@f8a.io",
+    "team": "Team 14"
+  },
+  {
+    "name": "Vĩ (Sr. Manager - Product)",
+    "email": "vi.le@f8a.io",
+    "team": "Team 9"
+  },
+  {
+    "name": "Sơn (Backend Engineer)",
+    "email": "son.nguyen@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Dũng (Director - Growth)",
+    "email": "kira@f8a.io",
+    "team": "Team 10"
+  },
+  {
+    "name": "Trang (Director - Marketing)",
+    "email": "fanny@f8a.io",
+    "team": "Team 11"
+  },
+  {
+    "name": "Phú (Director - Solution Design)",
+    "email": "phil@f8a.io",
+    "team": "Team 1"
+  }
+]
