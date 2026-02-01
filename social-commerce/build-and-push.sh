@@ -1,0 +1,1 @@
+docker buildx build -t tiktuzki/social-commerce:latest --platform linux/amd64 --push .

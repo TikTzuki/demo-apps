@@ -29,7 +29,7 @@ export function TeamProgressCard({team}: TeamProgressCardProps) {
                             className="w-4 h-4 rounded-full"
                             style={{backgroundColor: team.color}}
                         />
-                        <span className="font-semibold text-gray-800">{team.teamName}</span>
+                        <span className="font-semibold text-gray-800">{`${team.teamName} (Team ${team.teamId})`}</span>
                     </div>
                     <div className="flex items-center gap-2">
             <span className="text-gray-600 text-sm">
