@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      # Backend environment variables
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
+      # Add other env vars as needed
+      # - DATABASE_URL=postgresql://...
+      # - ANTHROPIC_API_KEY=...
+    volumes:
+      # Mount GCP credentials if using Google TTS
+      - ./credentials:/app/credentials:ro
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# For development with hot reload, use this instead:
+# docker-compose -f docker-compose.dev.yml up

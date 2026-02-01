@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Node
+front-end/node_modules
+front-end/dist
+front-end/.npm
+
+# Python
+backend/__pycache__
+backend/**/__pycache__
+backend/*.pyc
+backend/.pytest_cache
+backend/.mypy_cache
+backend/.venv
+backend/venv
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Env files (will be passed at runtime)
+.env
+.env.*
+!.env.example
+
+# Docs
+docs/
+*.md
+!README.md
+
+# Tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/tests/
+**/e2e/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
