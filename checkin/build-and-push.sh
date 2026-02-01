@@ -1,0 +1,1 @@
+docker buildx build -t tiktuzki/checkin-demo:latest --platform linux/amd64 --push .
