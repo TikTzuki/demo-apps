@@ -1,4 +1,4 @@
-import {useState, useCallback, useRef} from "react";
+import {useCallback, useRef, useState} from "react";
 
 type VoicePreset = "friendly" | "excited" | "calm" | "sleepy" | "surprised" | "love";
 
@@ -34,7 +34,7 @@ export function useGoogleTTS() {
             abortControllerRef.current = new AbortController();
 
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/tts/synthesize`,
+                `${import.meta.env.VITE_API_URL || ''}/api/v1/tts/synthesize`,
                 {
                     method: "POST",
                     headers: {

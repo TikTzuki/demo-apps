@@ -1,6 +1,6 @@
 # FEAT-002: Voice-First Social Feed
 
-**Status:** ACTIVE
+**Status:** DONE
 
 ---
 
@@ -186,15 +186,15 @@ nghe nội dung được đọc tự động, comment bằng giọng nói, và �
 - [x] Step 10: Create useGestureControl hook (gesture → scroll)
 - [x] Step 11: Integrate pose detection into VoiceFeed
 - [x] Step 12: Add camera permission prompt
-- [ ] Step 13: Polish animations và transitions
+- [ ] Step 13: Polish animations và transitions (TODO)
 
-### Files to Change/Add
+### Files Changed/Added
 
-| File                                              | Change                                   |
-|---------------------------------------------------|------------------------------------------|
-| `front-end/src/components/feed/PoseIndicator.tsx` | **NEW** - Small icon showing pose status |
-| `front-end/src/hooks/useGestureControl.ts`        | **NEW** - Map gestures to scroll actions |
-| `front-end/src/components/feed/VoiceFeed.tsx`     | Integrate gesture control + indicator    |
+| File                                              | Change                                | Status |
+|---------------------------------------------------|---------------------------------------|--------|
+| `front-end/src/components/feed/PoseIndicator.tsx` | Small icon showing pose status        | ✅ Done |
+| `front-end/src/hooks/useGestureControl.ts`        | Map gestures to scroll actions        | ✅ Done |
+| `front-end/src/components/feed/VoiceFeed.tsx`     | Integrate gesture control + indicator | ✅ Done |
 
 ---
 

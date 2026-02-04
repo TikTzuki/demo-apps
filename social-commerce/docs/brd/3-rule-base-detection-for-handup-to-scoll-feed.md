@@ -1,9 +1,9 @@
 # FEAT-003: Rule-Based Pose Detection for Feed Control
 
-**Status:** ACTIVE
+**Status:** DONE
 
-> **Note:** Feature này được tích hợp vào FEAT-002 (Voice-First Social Feed). Core detection logic đã DONE, còn lại
-> integration vào VoiceFeed.
+> **Note:** Feature này được tích hợp vào FEAT-002 (Voice-First Social Feed). Cả core detection và integration đã hoàn
+> thành.
 
 ---
 
@@ -86,7 +86,7 @@ Xem wireframe chi tiết tại [FEAT-002: Voice-First Social Feed](./2-voice-fir
 | `front-end/src/components/pose/PoseDetector.tsx` | Standalone demo              | ✅ Done |
 | `front-end/src/components/pose/PoseDemo.tsx`     | Demo page                    | ✅ Done |
 
-### Integration với VoiceFeed (TODO)
+### Integration với VoiceFeed (DONE)
 
 | File                                              | Purpose                  | Status |
 |---------------------------------------------------|--------------------------|--------|
@@ -108,7 +108,7 @@ Xem wireframe chi tiết tại [FEAT-002: Voice-First Social Feed](./2-voice-fir
 - [x] Step 6: Tạo PoseDetector component (standalone)
 - [x] Step 7: Tạo PoseDemo page
 
-### Phase 2: VoiceFeed Integration (TODO)
+### Phase 2: VoiceFeed Integration (DONE)
 
 - [x] Step 8: Tạo PoseIndicator component (small icon)
 - [x] Step 9: Tạo useGestureControl hook
@@ -154,7 +154,7 @@ Xem wireframe chi tiết tại [FEAT-002: Voice-First Social Feed](./2-voice-fir
 
 ## 7. Implementation Summary
 
-### What Changed (Phase 1 - DONE)
+### What Changed (Phase 1 - Core Detection)
 
 | File                                             | Change                              |
 |--------------------------------------------------|-------------------------------------|
@@ -187,9 +187,18 @@ Xem wireframe chi tiết tại [FEAT-002: Voice-First Social Feed](./2-voice-fir
 | 1s cooldown           | Prevent accidental rapid scrolling |
 | Single hand detection | Easier for user than both hands    |
 
+### What Changed (Phase 2 - VoiceFeed Integration)
+
+| File                                              | Change                          |
+|---------------------------------------------------|---------------------------------|
+| `front-end/src/components/feed/PoseIndicator.tsx` | Small status icon (📷●/○/✕)     |
+| `front-end/src/hooks/useGestureControl.ts`        | Gesture → scrollToIndex mapping |
+| `front-end/src/components/feed/VoiceFeed.tsx`     | Integrated pose + gesture       |
+
 ### Quick Reference
 
 - Frontend hook: `usePoseDetection()`
+- Gesture hook: `useGestureControl()`
+- Indicator: `<PoseIndicator />`
 - Standalone demo: `<PoseDemo />`
-- Integration: See FEAT-002 for VoiceFeed integration
 - Dependencies: `@mediapipe/pose`

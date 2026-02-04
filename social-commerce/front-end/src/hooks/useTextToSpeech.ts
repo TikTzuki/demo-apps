@@ -1,4 +1,4 @@
-import {useState, useCallback, useEffect, useRef} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 const VIETNAMESE_LANG = "vi-VN";
 
@@ -89,7 +89,7 @@ export function useTextToSpeech() {
             abortControllerRef.current = new AbortController();
 
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/tts/synthesize`,
+                `${import.meta.env.VITE_API_URL || ''}/api/v1/tts/synthesize`,
                 {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
