@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState, useCallback} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {apiFetch} from "@/lib/api";
 import type {OrgListItem} from "@/lib/types";
 import {OrgCard} from "@/components/org/OrgCard";
@@ -9,7 +9,7 @@ import {CreateOrgForm} from "@/components/admin/CreateOrgForm";
 import {Button} from "@/components/ui/button";
 import {ThemeToggle} from "@/components/ui/theme-toggle";
 import {useAdmin} from "@/lib/admin-context";
-import {Building2, Plus, Shield} from "lucide-react";
+import {Building2, Lock, Plus} from "lucide-react";
 
 export default function HomePage() {
     const {isAdmin} = useAdmin();
@@ -47,7 +47,7 @@ export default function HomePage() {
                         onClick={() => setAdminOpen(true)}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                     >
-                        <Shield className="h-4 w-4"/>
+                        <Lock className="h-4 w-4"/>
                     </button>
                 </div>
             </div>

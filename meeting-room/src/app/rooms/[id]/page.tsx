@@ -1,15 +1,13 @@
 "use client";
 
-import {useEffect, useState, useCallback} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import {apiFetch} from "@/lib/api";
 import {getDateString} from "@/lib/utils";
-import type {
-    BookingSlot,
-    BookingConfirmation as BookingConfirmationType,
-} from "@/lib/types";
+import type {BookingConfirmation as BookingConfirmationType, BookingSlot,} from "@/lib/types";
 import {BookingForm} from "@/components/booking/BookingForm";
 import {BookingConfirmation} from "@/components/booking/BookingConfirmation";
+import {CancelBookingModal} from "@/components/booking/CancelBookingModal";
 import {ArrowLeft} from "lucide-react";
 
 export default function RoomBookingPage() {
@@ -22,6 +20,9 @@ export default function RoomBookingPage() {
     const [error, setError] = useState("");
     const [confirmation, setConfirmation] =
         useState<BookingConfirmationType | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BookingSlot | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
     const fetchBookings = useCallback(async () => {
         setLoading(true);
@@ -59,6 +60,30 @@ export default function RoomBookingPage() {
         }
     }
 
+  function handleBookingTap(booking: BookingSlot) {
+    setCancelTarget(booking);
+    setCancelError("");
+  }
+
+  async function handleCancelConfirm(bookingId: string, bookerName: string) {
+    setCancelling(true);
+    setCancelError("");
+
+    const res = await apiFetch(`/api/bookings/${bookingId}`, {
+      method: "DELETE",
+      body: JSON.stringify({bookerName}),
+    });
+
+    setCancelling(false);
+
+    if (res.success) {
+      setCancelTarget(null);
+      fetchBookings();
+    } else {
+      setCancelError(res.error ?? "Failed to cancel booking");
+    }
+  }
+
     return (
         <div className="mx-auto min-h-screen max-w-lg px-4 py-8">
             {/* Header */}
@@ -93,6 +118,7 @@ export default function RoomBookingPage() {
                         bookings={bookings}
                         selectedDate={selectedDate}
                         onDateChange={setSelectedDate}
+                        onBookingTap={handleBookingTap}
                     />
                 )}
                 {error && (
@@ -107,6 +133,15 @@ export default function RoomBookingPage() {
                 booking={confirmation}
                 onClose={() => setConfirmation(null)}
             />
+
+          {/* Cancel booking modal */}
+          <CancelBookingModal
+              booking={cancelTarget}
+              onConfirm={handleCancelConfirm}
+              onClose={() => setCancelTarget(null)}
+              loading={cancelling}
+              error={cancelError}
+          />
         </div>
     );
 }

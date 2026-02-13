@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useRef, useCallback} from "react";
+import {useCallback, useEffect, useRef} from "react";
 import type {BookingSlot} from "@/lib/types";
 import {cn} from "@/lib/utils";
 
@@ -16,6 +16,7 @@ interface TimeGridProps {
     selectedStart: number | null;
     selectedEnd: number | null;
     onRangeChange: (start: number, end: number) => void;
+    onBookingTap?: (booking: BookingSlot) => void;
     isToday: boolean;
 }
 
@@ -52,6 +53,7 @@ export function TimeGrid({
                              selectedStart,
                              selectedEnd,
                              onRangeChange,
+                             onBookingTap,
                              isToday,
                          }: TimeGridProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,7 +77,7 @@ export function TimeGrid({
 
     // Build booked slot set & booking ranges for overlay
     const bookedSlots = new Set<number>();
-    const bookingRanges: Array<{ startSlot: number; endSlot: number; name: string }> = [];
+    const bookingRanges: Array<{ startSlot: number; endSlot: number; name: string; booking: BookingSlot }> = [];
 
     for (const b of bookings) {
         const startSlot = Math.max(0, timeToSlotIndex(b.startTime));
@@ -84,6 +86,7 @@ export function TimeGrid({
             startSlot: Math.floor(startSlot),
             endSlot: Math.ceil(endSlot),
             name: b.bookerName,
+            booking: b,
         });
         for (let i = Math.floor(startSlot); i < Math.ceil(endSlot); i++) {
             if (i >= 0 && i < TOTAL_SLOTS) bookedSlots.add(i);
@@ -263,9 +266,14 @@ export function TimeGrid({
 
                     {/* Booking overlay labels */}
                     {bookingRanges.map((br, idx) => (
-                        <div
+                        <button
                             key={`booking-label-${idx}`}
-                            className="pointer-events-none absolute flex items-center justify-center overflow-hidden"
+                            type="button"
+                            onClick={() => onBookingTap?.(br.booking)}
+                            className={cn(
+                                "absolute flex items-center justify-center overflow-hidden",
+                                onBookingTap ? "cursor-pointer hover:bg-teal-200/50 dark:hover:bg-teal-800/50" : "pointer-events-none"
+                            )}
                             style={{
                                 left: `${(br.startSlot / TOTAL_SLOTS) * 100}%`,
                                 width: `${((br.endSlot - br.startSlot) / TOTAL_SLOTS) * 100}%`,
@@ -276,7 +284,7 @@ export function TimeGrid({
               <span className="truncate px-1 text-xs font-medium text-teal-700 dark:text-teal-300">
                 {br.name}
               </span>
-                        </div>
+                        </button>
                     ))}
 
                     {/* Selected range highlight + handles */}

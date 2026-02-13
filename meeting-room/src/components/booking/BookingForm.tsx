@@ -1,10 +1,10 @@
 "use client";
 
-import {useState, useCallback, useRef, useEffect} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import type {BookingSlot} from "@/lib/types";
 import {cn} from "@/lib/utils";
 import {DatePicker} from "@/components/booking/DatePicker";
-import {TimeGrid, slotToHourMinute} from "@/components/booking/TimeGrid";
+import {slotToHourMinute, TimeGrid} from "@/components/booking/TimeGrid";
 import {Button} from "@/components/ui/button";
 import {CalendarDays, ChevronDown} from "lucide-react";
 
@@ -18,6 +18,7 @@ interface BookingFormProps {
     bookings: BookingSlot[];
     selectedDate: string;
     onDateChange: (date: string) => void;
+    onBookingTap?: (booking: BookingSlot) => void;
 }
 
 function slotToTimeLabel(slotIndex: number): string {
@@ -44,6 +45,7 @@ export function BookingForm({
                                 bookings,
                                 selectedDate,
                                 onDateChange,
+                                onBookingTap,
                             }: BookingFormProps) {
     const [name, setName] = useState("");
     const [selectedStart, setSelectedStart] = useState<number | null>(null);
@@ -137,6 +139,7 @@ export function BookingForm({
                     selectedStart={selectedStart}
                     selectedEnd={selectedEnd}
                     onRangeChange={handleRangeChange}
+                    onBookingTap={onBookingTap}
                     isToday={isToday}
                 />
             </div>

@@ -4,14 +4,10 @@ export const createBookingSchema = z.object({
     roomId: z.string().uuid(),
     bookerName: z.string().min(1, "Name is required").max(100).trim(),
     startTime: z.string().datetime(),
-    durationMinutes: z.union([
-        z.literal(15),
-        z.literal(30),
-        z.literal(45),
-        z.literal(60),
-        z.literal(90),
-        z.literal(120),
-    ]),
+    durationMinutes: z.number().int().min(30).max(720).refine(
+        (v) => v % 30 === 0,
+        {message: "Duration must be a multiple of 30 minutes"}
+    ),
 });
 
 export const createOrgSchema = z.object({

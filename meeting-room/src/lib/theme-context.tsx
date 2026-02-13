@@ -2,30 +2,21 @@
 
 import {createContext, useContext, useEffect, useState} from "react";
 
-type Theme = "light" | "dark" | "system";
+type Theme = "light" | "dark";
 
 interface ThemeContextValue {
     theme: Theme;
     setTheme: (theme: Theme) => void;
-    resolvedTheme: "light" | "dark";
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-    theme: "system",
+    theme: "light",
     setTheme: () => {
     },
-    resolvedTheme: "light",
 });
 
-function getSystemTheme(): "light" | "dark" {
-    if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-}
-
-function applyTheme(resolved: "light" | "dark") {
-    if (resolved === "dark") {
+function applyTheme(theme: Theme) {
+    if (theme === "dark") {
         document.documentElement.classList.add("dark");
     } else {
         document.documentElement.classList.remove("dark");
@@ -33,35 +24,18 @@ function applyTheme(resolved: "light" | "dark") {
 }
 
 export function ThemeProvider({children}: { children: React.ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>("system");
-    const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+    const [theme, setThemeState] = useState<Theme>("light");
 
     useEffect(() => {
         const stored = localStorage.getItem("theme") as Theme | null;
-        if (stored === "light" || stored === "dark" || stored === "system") {
+        if (stored === "light" || stored === "dark") {
             setThemeState(stored);
+            applyTheme(stored);
         }
     }, []);
 
     useEffect(() => {
-        const resolved = theme === "system" ? getSystemTheme() : theme;
-        setResolvedTheme(resolved);
-        applyTheme(resolved);
-    }, [theme]);
-
-    useEffect(() => {
-        if (theme !== "system") return;
-
-        const mql = window.matchMedia("(prefers-color-scheme: dark)");
-
-        function handler() {
-            const resolved = getSystemTheme();
-            setResolvedTheme(resolved);
-            applyTheme(resolved);
-        }
-
-        mql.addEventListener("change", handler);
-        return () => mql.removeEventListener("change", handler);
+        applyTheme(theme);
     }, [theme]);
 
     function setTheme(next: Theme) {
@@ -70,7 +44,7 @@ export function ThemeProvider({children}: { children: React.ReactNode }) {
     }
 
     return (
-        <ThemeContext.Provider value={{theme, setTheme, resolvedTheme}}>
+        <ThemeContext.Provider value={{theme, setTheme}}>
             {children}
         </ThemeContext.Provider>
     );
