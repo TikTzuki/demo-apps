@@ -32,11 +32,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy Prisma files (client + CLI + migration files)
+# Copy Prisma client + migration files
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+
+# Install prisma CLI with all its dependencies for migrate deploy
+RUN npm install prisma --save-dev --ignore-scripts
 
 # Copy entrypoint script
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
