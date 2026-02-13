@@ -1,0 +1,1 @@
+docker buildx build -t tiktuzki/meeting-room:latest --platform linux/amd64 --push .

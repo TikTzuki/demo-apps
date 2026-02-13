@@ -1,0 +1,64 @@
+# Cursor AI Rules - Chat Bot Assistant
+
+AI-powered chat bot with text-to-speech (TTS) and speech-to-text (STT) capabilities.
+
+## Tech Stack
+
+- **Backend**: Python 3.11+, FastAPI, SQLAlchemy 2.0+, Pydantic v2
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **AI**: Claude API, OpenAI Whisper, ElevenLabs TTS
+
+## Code Style
+
+### Python
+- Use async/await for all I/O operations
+- Type hints required for all functions
+- Pydantic models for validation
+- Repository pattern for data access
+
+### TypeScript
+- Strict mode enabled
+- No `any` types
+- React Query for server state
+- Zod for runtime validation
+
+## Critical Rules
+
+1. **Immutability** - Never mutate objects, always spread
+2. **Small Files** - 200-400 lines typical, 800 max
+3. **TDD** - Write tests first, 80% coverage minimum
+4. **Security** - No hardcoded secrets, validate all inputs
+5. **Error Handling** - Try/catch with proper logging
+
+## Patterns
+
+### API Response
+```python
+class ApiResponse(BaseModel, Generic[T]):
+    success: bool
+    data: Optional[T] = None
+    error: Optional[str] = None
+```
+
+### Custom Hook
+```typescript
+export function useChat() {
+  const messages = useQuery({ queryKey: ['messages'], queryFn: fetchMessages });
+  const sendMessage = useMutation({ mutationFn: postMessage });
+  return { messages, sendMessage };
+}
+```
+
+## Memory System
+
+Refer to `docs/project_notes/` for project knowledge:
+- `bugs.md` - Bug tracking
+- `decisions.md` - Architecture decisions
+- `key_facts.md` - Project facts
+- `issues.md` - Current issues
+
+## Commands
+
+- `/plan` - Create implementation plan
+- `/tdd` - Test-driven development
+- `/code-review` - Review code quality
