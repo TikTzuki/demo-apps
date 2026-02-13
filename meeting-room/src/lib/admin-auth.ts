@@ -22,6 +22,7 @@ export function requireAdmin(request: NextRequest): NextResponse | null {
             {status: 500}
         );
     }
+    console.log(`Expected: |${expected}|, Provided: |${secret}|`);
 
     if (!secret || !constantTimeEqual(secret, expected)) {
         return NextResponse.json(
