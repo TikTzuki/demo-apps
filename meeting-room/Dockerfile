@@ -34,14 +34,17 @@ COPY --from=builder /app/.next/static ./.next/static
 
 # Copy Prisma client + migration files
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/.prisma ./app/node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./app/node_modules/@prisma
 
 # Install prisma CLI with all its dependencies for migrate deploy
 RUN npm install prisma --save-dev --ignore-scripts
 
 # Copy entrypoint script
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
+
+# Ensure nextjs user can write to prisma engines (needed for migrate deploy)
+RUN chown -R nextjs:nodejs node_modules/@prisma node_modules/.prisma
 
 USER nextjs
 
