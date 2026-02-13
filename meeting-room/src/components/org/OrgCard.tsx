@@ -4,6 +4,7 @@ import type {OrgListItem} from "@/lib/types";
 import {Building2, ChevronRight, DoorOpen, Trash2} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {useAdmin} from "@/lib/admin-context";
+import {useTranslation} from "@/lib/i18n/context";
 import {apiFetch} from "@/lib/api";
 
 interface OrgCardProps {
@@ -14,10 +15,11 @@ interface OrgCardProps {
 export function OrgCard({org, onDeleted}: OrgCardProps) {
     const router = useRouter();
     const {isAdmin, adminSecret} = useAdmin();
+    const {t} = useTranslation();
 
     async function handleDelete(e: React.MouseEvent) {
         e.stopPropagation();
-        if (!confirm(`Delete "${org.name}" and all its rooms?`)) return;
+        if (!confirm(t("org.deleteConfirm", {name: org.name}))) return;
 
         const res = await apiFetch(`/api/admin/orgs/${org.id}`, {
             method: "DELETE",
@@ -26,6 +28,10 @@ export function OrgCard({org, onDeleted}: OrgCardProps) {
 
         if (res.success) onDeleted();
     }
+
+    const roomCountText = org.roomCount === 1
+        ? t("org.roomCount", {count: org.roomCount})
+        : t("org.roomCountPlural", {count: org.roomCount});
 
     return (
         <div
@@ -65,9 +71,7 @@ export function OrgCard({org, onDeleted}: OrgCardProps) {
 
             <div className="mt-3 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                 <DoorOpen className="h-3.5 w-3.5"/>
-                <span>
-          {org.roomCount} room{org.roomCount !== 1 ? "s" : ""}
-        </span>
+                <span>{roomCountText}</span>
             </div>
         </div>
     );

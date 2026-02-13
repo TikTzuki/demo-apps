@@ -5,6 +5,7 @@ import {Modal} from "@/components/ui/modal";
 import {Button} from "@/components/ui/button";
 import {formatDuration, formatTime} from "@/lib/utils";
 import type {BookingSlot} from "@/lib/types";
+import {useTranslation} from "@/lib/i18n/context";
 
 interface CancelBookingModalProps {
     booking: BookingSlot | null;
@@ -21,6 +22,7 @@ export function CancelBookingModal({
                                        loading,
                                        error,
                                    }: CancelBookingModalProps) {
+    const {t} = useTranslation();
     const [nameInput, setNameInput] = useState("");
 
     if (!booking) return null;
@@ -37,28 +39,28 @@ export function CancelBookingModal({
         <Modal isOpen={!!booking} onClose={onClose}>
             <div>
                 <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Cancel Booking
+                    {t("booking.cancelTitle")}
                 </h2>
                 <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                    Are you sure you want to cancel this booking?
+                    {t("booking.cancelConfirm")}
                 </p>
 
                 <div className="mb-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm dark:bg-gray-800">
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Name</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.nameLabel")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                             {booking.bookerName}
                         </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Time</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.time")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                             {formatTime(booking.startTime)} &ndash;{" "}
                             {formatTime(booking.endTime)}
                         </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Duration</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.duration")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                             {formatDuration(booking.durationMinutes)}
                         </span>
@@ -67,7 +69,7 @@ export function CancelBookingModal({
 
                 <div className="mb-4">
                     <label className="mb-1.5 block text-sm font-medium text-gray-600 dark:text-gray-400">
-                        Type &quot;{booking.bookerName}&quot; to confirm
+                        {t("booking.typeToConfirm", {name: booking.bookerName})}
                     </label>
                     <input
                         type="text"
@@ -92,7 +94,7 @@ export function CancelBookingModal({
                         className="flex-1"
                         disabled={loading}
                     >
-                        Keep
+                        {t("booking.keep")}
                     </Button>
                     <Button
                         variant="danger"
@@ -100,7 +102,7 @@ export function CancelBookingModal({
                         className="flex-1"
                         disabled={!nameMatches || loading}
                     >
-                        {loading ? "Cancelling..." : "Cancel Booking"}
+                        {loading ? t("booking.cancelling") : t("booking.cancelBooking")}
                     </Button>
                 </div>
             </div>

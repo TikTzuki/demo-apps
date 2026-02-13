@@ -4,6 +4,7 @@ import {useState} from "react";
 import {Modal} from "@/components/ui/modal";
 import {Button} from "@/components/ui/button";
 import {useAdmin} from "@/lib/admin-context";
+import {useTranslation} from "@/lib/i18n/context";
 import {apiFetch} from "@/lib/api";
 import {Building2} from "lucide-react";
 
@@ -19,6 +20,7 @@ export function CreateOrgForm({
                                   onCreated,
                               }: CreateOrgFormProps) {
     const {adminSecret} = useAdmin();
+  const {t} = useTranslation();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
@@ -46,7 +48,7 @@ export function CreateOrgForm({
             onCreated();
             onClose();
         } else {
-            setError(res.error ?? "Failed to create organization");
+          setError(res.error ?? t("admin.createFailed"));
         }
     }
 
@@ -58,14 +60,14 @@ export function CreateOrgForm({
                     <Building2 className="h-7 w-7 text-gray-600 dark:text-gray-400"/>
                 </div>
                 <h2 className="mb-4 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    New Organization
+                  {t("admin.newOrg")}
                 </h2>
 
                 <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Organization name"
+                    placeholder={t("admin.orgName")}
                     className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                     autoFocus
                 />
@@ -73,7 +75,7 @@ export function CreateOrgForm({
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Description (optional)"
+                    placeholder={t("admin.orgDesc")}
                     rows={2}
                     className="mb-3 w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                 />
@@ -90,7 +92,7 @@ export function CreateOrgForm({
                     disabled={loading || !name.trim()}
                     className="w-full"
                 >
-                    {loading ? "Creating..." : "Create Organization"}
+                  {loading ? t("admin.creating") : t("admin.createOrg")}
                 </Button>
             </div>
         </Modal>

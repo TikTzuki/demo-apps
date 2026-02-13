@@ -2,6 +2,7 @@
 
 import {useState} from "react";
 import {cn} from "@/lib/utils";
+import {useTranslation} from "@/lib/i18n/context";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 
 interface DatePickerProps {
@@ -15,13 +16,6 @@ function formatDateKey(date: Date): string {
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
 }
-
-const MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-];
-
-const DAY_HEADERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 function getCalendarDays(year: number, month: number) {
     // month is 0-indexed
@@ -88,8 +82,12 @@ function getCalendarDays(year: number, month: number) {
 }
 
 export function DatePicker({selectedDate, onSelect}: DatePickerProps) {
+    const {tArray} = useTranslation();
     const today = new Date();
     const todayKey = formatDateKey(today);
+
+    const monthNames = tArray("calendar.months");
+    const dayHeaders = tArray("calendar.days");
 
     // Parse selectedDate to initialize the viewed month
     const [selY, selM] = selectedDate.split("-").map(Number);
@@ -128,7 +126,7 @@ export function DatePicker({selectedDate, onSelect}: DatePickerProps) {
                     <ChevronLeft className="h-4 w-4"/>
                 </button>
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          {MONTH_NAMES[viewMonth]}
+          {monthNames[viewMonth]}
         </span>
                 <button
                     type="button"
@@ -141,7 +139,7 @@ export function DatePicker({selectedDate, onSelect}: DatePickerProps) {
 
             {/* Day-of-week headers */}
             <div className="mb-1 grid grid-cols-7 text-center">
-                {DAY_HEADERS.map((d, i) => (
+                {dayHeaders.map((d, i) => (
                     <span
                         key={i}
                         className="py-1 text-xs font-medium text-gray-400 dark:text-gray-500"

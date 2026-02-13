@@ -4,6 +4,7 @@ import {useState} from "react";
 import {Modal} from "@/components/ui/modal";
 import {Button} from "@/components/ui/button";
 import {useAdmin} from "@/lib/admin-context";
+import {useTranslation} from "@/lib/i18n/context";
 import {apiFetch} from "@/lib/api";
 import {DoorOpen} from "lucide-react";
 
@@ -21,6 +22,7 @@ export function CreateRoomForm({
                                    orgId,
                                }: CreateRoomFormProps) {
     const {adminSecret} = useAdmin();
+    const {t} = useTranslation();
     const [name, setName] = useState("");
     const [capacity, setCapacity] = useState("6");
     const [location, setLocation] = useState("");
@@ -51,7 +53,7 @@ export function CreateRoomForm({
             onCreated();
             onClose();
         } else {
-            setError(res.error ?? "Failed to create room");
+            setError(res.error ?? t("admin.createRoomFailed"));
         }
     }
 
@@ -63,14 +65,14 @@ export function CreateRoomForm({
                     <DoorOpen className="h-7 w-7 text-gray-600 dark:text-gray-400"/>
                 </div>
                 <h2 className="mb-4 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    New Room
+                    {t("admin.newRoom")}
                 </h2>
 
                 <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Room name"
+                    placeholder={t("admin.roomName")}
                     className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                     autoFocus
                 />
@@ -80,7 +82,7 @@ export function CreateRoomForm({
                         type="number"
                         value={capacity}
                         onChange={(e) => setCapacity(e.target.value)}
-                        placeholder="Capacity"
+                        placeholder={t("admin.capacity")}
                         min={1}
                         max={1000}
                         className="w-1/2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
@@ -89,7 +91,7 @@ export function CreateRoomForm({
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Location (optional)"
+                        placeholder={t("admin.location")}
                         className="w-1/2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                     />
                 </div>
@@ -106,7 +108,7 @@ export function CreateRoomForm({
                     disabled={loading || !name.trim()}
                     className="w-full"
                 >
-                    {loading ? "Creating..." : "Create Room"}
+                    {loading ? t("admin.creatingRoom") : t("admin.createRoom")}
                 </Button>
             </div>
         </Modal>

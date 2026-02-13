@@ -8,11 +8,14 @@ import {AdminModal} from "@/components/admin/AdminModal";
 import {CreateOrgForm} from "@/components/admin/CreateOrgForm";
 import {Button} from "@/components/ui/button";
 import {ThemeToggle} from "@/components/ui/theme-toggle";
+import {LanguageSwitcher} from "@/components/ui/language-switcher";
 import {useAdmin} from "@/lib/admin-context";
+import {useTranslation} from "@/lib/i18n/context";
 import {Building2, Lock, Plus} from "lucide-react";
 
 export default function HomePage() {
     const {isAdmin} = useAdmin();
+    const {t} = useTranslation();
     const [orgs, setOrgs] = useState<OrgListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [adminOpen, setAdminOpen] = useState(false);
@@ -35,13 +38,14 @@ export default function HomePage() {
             <div className="mb-8 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        Meeting Rooms
+                        {t("home.title")}
                     </h1>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Select an organization to book a room
+                        {t("home.subtitle")}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <LanguageSwitcher/>
                     <ThemeToggle/>
                     <button
                         onClick={() => setAdminOpen(true)}
@@ -60,7 +64,7 @@ export default function HomePage() {
                     className="mb-4 w-full"
                 >
                     <Plus className="mr-2 h-4 w-4"/>
-                    New Organization
+                    {t("home.newOrg")}
                 </Button>
             )}
 
@@ -78,7 +82,7 @@ export default function HomePage() {
                 <div className="mt-20 text-center">
                     <Building2 className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600"/>
                     <p className="mt-4 text-gray-400 dark:text-gray-500">
-                        No organizations yet
+                        {t("home.empty")}
                     </p>
                 </div>
             ) : (

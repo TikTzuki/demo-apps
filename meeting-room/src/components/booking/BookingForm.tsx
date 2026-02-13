@@ -6,6 +6,7 @@ import {cn} from "@/lib/utils";
 import {DatePicker} from "@/components/booking/DatePicker";
 import {slotToHourMinute, TimeGrid} from "@/components/booking/TimeGrid";
 import {Button} from "@/components/ui/button";
+import {useTranslation} from "@/lib/i18n/context";
 import {CalendarDays, ChevronDown} from "lucide-react";
 
 interface BookingFormProps {
@@ -30,15 +31,6 @@ function slotToTimeLabel(slotIndex: number): string {
         : `${h12}:${String(minute).padStart(2, "0")} ${period}`;
 }
 
-function formatSelectedDate(dateStr: string): string {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    if (dateStr === todayStr) return "Today";
-    return date.toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"});
-}
-
 export function BookingForm({
                                 onSubmit,
                                 loading,
@@ -47,6 +39,7 @@ export function BookingForm({
                                 onDateChange,
                                 onBookingTap,
                             }: BookingFormProps) {
+    const {t, locale} = useTranslation();
     const [name, setName] = useState("");
     const [selectedStart, setSelectedStart] = useState<number | null>(null);
     const [selectedEnd, setSelectedEnd] = useState<number | null>(null);
@@ -108,6 +101,17 @@ export function BookingForm({
         });
     }
 
+    function formatSelectedDate(dateStr: string): string {
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        if (dateStr === todayKey) return t("booking.today");
+        return date.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+        });
+    }
+
     const hasSelection = selectedStart !== null && selectedEnd !== null;
     const canSubmit = name.trim().length > 0 && hasSelection && !loading;
 
@@ -116,13 +120,13 @@ export function BookingForm({
             {/* Name */}
             <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Your Name
+                    {t("booking.name")}
                 </label>
                 <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. John"
+                    placeholder={t("booking.namePlaceholder")}
                     maxLength={100}
                     className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-600 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                     autoFocus
@@ -132,7 +136,7 @@ export function BookingForm({
             {/* Time grid */}
             <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Select Time
+                    {t("booking.selectTime")}
                 </label>
                 <TimeGrid
                     bookings={bookings}
@@ -168,7 +172,7 @@ export function BookingForm({
                     )}
                     {!hasSelection && (
                         <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                            Tap or drag to pick a time
+                            {t("booking.tapDrag")}
                         </p>
                     )}
 
@@ -189,7 +193,7 @@ export function BookingForm({
                     disabled={!canSubmit}
                     className="shrink-0"
                 >
-                    {loading ? "Booking..." : "Book Room"}
+                    {loading ? t("booking.booking") : t("booking.bookRoom")}
                 </Button>
             </div>
         </form>

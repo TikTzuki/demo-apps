@@ -5,6 +5,7 @@ import {cn, formatDuration, getRemainingMinutes} from "@/lib/utils";
 import {ChevronRight, MapPin, Trash2, Users} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {useAdmin} from "@/lib/admin-context";
+import {useTranslation} from "@/lib/i18n/context";
 import {apiFetch} from "@/lib/api";
 
 interface RoomCardProps {
@@ -15,13 +16,14 @@ interface RoomCardProps {
 export function RoomCard({room, onDeleted}: RoomCardProps) {
     const router = useRouter();
     const {isAdmin, adminSecret} = useAdmin();
+    const {t} = useTranslation();
     const remaining = room.currentBooking
         ? getRemainingMinutes(room.currentBooking.endTime)
         : 0;
 
     async function handleDelete(e: React.MouseEvent) {
         e.stopPropagation();
-        if (!confirm(`Delete "${room.name}" and all its bookings?`)) return;
+        if (!confirm(t("room.deleteConfirm", {name: room.name}))) return;
 
         const res = await apiFetch(`/api/admin/rooms/${room.id}`, {
             method: "DELETE",
@@ -50,7 +52,7 @@ export function RoomCard({room, onDeleted}: RoomCardProps) {
                                     : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400"
                             )}
                         >
-              {room.status === "available" ? "Available" : "Occupied"}
+              {room.status === "available" ? t("room.available") : t("room.occupied")}
             </span>
                     </div>
 
@@ -71,8 +73,8 @@ export function RoomCard({room, onDeleted}: RoomCardProps) {
 
                     {room.currentBooking && (
                         <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
-                            Booked by {room.currentBooking.bookerName} &middot;{" "}
-                            {formatDuration(remaining)} left
+                            {t("room.bookedBy", {name: room.currentBooking.bookerName})} &middot;{" "}
+                            {t("room.left", {duration: formatDuration(remaining)})}
                         </p>
                     )}
                 </div>

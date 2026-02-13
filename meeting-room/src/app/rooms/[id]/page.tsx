@@ -8,11 +8,13 @@ import type {BookingConfirmation as BookingConfirmationType, BookingSlot,} from 
 import {BookingForm} from "@/components/booking/BookingForm";
 import {BookingConfirmation} from "@/components/booking/BookingConfirmation";
 import {CancelBookingModal} from "@/components/booking/CancelBookingModal";
+import {useTranslation} from "@/lib/i18n/context";
 import {ArrowLeft} from "lucide-react";
 
 export default function RoomBookingPage() {
     const params = useParams<{ id: string }>();
     const router = useRouter();
+  const {t} = useTranslation();
     const [selectedDate, setSelectedDate] = useState(() => getDateString());
     const [bookings, setBookings] = useState<BookingSlot[]>([]);
     const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export default function RoomBookingPage() {
             setConfirmation(res.data);
             fetchBookings();
         } else {
-            setError(res.error ?? "Failed to create booking");
+          setError(res.error ?? t("booking.createFailed"));
         }
     }
 
@@ -80,7 +82,7 @@ export default function RoomBookingPage() {
       setCancelTarget(null);
       fetchBookings();
     } else {
-      setCancelError(res.error ?? "Failed to cancel booking");
+      setCancelError(res.error ?? t("booking.cancelFailed"));
     }
   }
 
@@ -93,13 +95,13 @@ export default function RoomBookingPage() {
                     className="mb-4 flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                     <ArrowLeft className="h-4 w-4"/>
-                    Back
+                  {t("room.back")}
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Book Room
+                  {t("room.title")}
                 </h1>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Pick a date, select a time range, and book
+                  {t("room.subtitle")}
                 </p>
             </div>
 

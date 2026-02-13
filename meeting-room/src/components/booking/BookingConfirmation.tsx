@@ -2,8 +2,9 @@
 
 import {Modal} from "@/components/ui/modal";
 import {Button} from "@/components/ui/button";
-import {formatTime, formatDuration} from "@/lib/utils";
+import {formatDuration, formatTime} from "@/lib/utils";
 import type {BookingConfirmation as BookingConfirmationType} from "@/lib/types";
+import {useTranslation} from "@/lib/i18n/context";
 import {Check} from "lucide-react";
 
 interface BookingConfirmationProps {
@@ -15,6 +16,8 @@ export function BookingConfirmation({
                                         booking,
                                         onClose,
                                     }: BookingConfirmationProps) {
+    const {t} = useTranslation();
+
     if (!booking) return null;
 
     return (
@@ -25,42 +28,42 @@ export function BookingConfirmation({
                     <Check className="h-7 w-7 text-green-600 dark:text-green-400"/>
                 </div>
                 <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Booked!
+                    {t("booking.booked")}
                 </h2>
                 <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
-                    Your room is reserved.
+                    {t("booking.reserved")}
                 </p>
 
                 <div className="mb-5 space-y-2 rounded-xl bg-gray-50 p-4 text-left text-sm dark:bg-gray-800">
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Room</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.room")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
               {booking.roomName}
             </span>
                     </div>
                     <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">
-              Organization
+              {t("booking.organization")}
             </span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
               {booking.orgName}
             </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Name</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.nameLabel")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
               {booking.bookerName}
             </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Time</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.time")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
               {formatTime(booking.startTime)} &ndash;{" "}
                             {formatTime(booking.endTime)}
             </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Duration</span>
+                        <span className="text-gray-500 dark:text-gray-400">{t("booking.duration")}</span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
               {formatDuration(booking.durationMinutes)}
             </span>
@@ -68,7 +71,7 @@ export function BookingConfirmation({
                 </div>
 
                 <Button variant="primary" onClick={onClose} className="w-full">
-                    Done
+                    {t("booking.done")}
                 </Button>
             </div>
         </Modal>
