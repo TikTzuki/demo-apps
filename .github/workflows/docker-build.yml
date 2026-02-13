@@ -3,14 +3,25 @@ name: Build and Push Docker Image
 on:
   workflow_dispatch:
     inputs:
+      app:
+        description: 'App to build'
+        required: true
+        type: choice
+        options:
+          - checkin
+          - firework
+          - meeting-room
+          - social-commerce
       docker_tag_suffix:
         description: 'Optional tag suffix (default: commit hash)'
         required: false
         default: ''
+
 permissions:
   contents: write
   pages: write
   id-token: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -18,6 +29,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Resolve Dockerfile path
+        id: dockerfile
+        run: |
+          APP="${{ github.event.inputs.app }}"
+
+          # Default: Dockerfile in app root
+          CONTEXT="./$APP"
+          DOCKERFILE="./$APP/Dockerfile"
+
+          # Special case: firework uses a nested Dockerfile
+          if [ "$APP" = "firework" ]; then
+            DOCKERFILE="./$APP/examples/web/Dockerfile"
+          fi
+
+          echo "context=$CONTEXT" >> $GITHUB_OUTPUT
+          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,28 +59,25 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-          # Get short commit hash
+          APP="${{ github.event.inputs.app }}"
           COMMIT_HASH=$(git rev-parse --short HEAD)
-          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
-          
-          # Set Docker tags
-          DOCKER_TAGS="${{ secrets.DOCKERHUB_USERNAME }}/firework-demo:$COMMIT_HASH"
-          
-          # Add custom suffix if provided
+          IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${APP}"
+
+          DOCKER_TAGS="${IMAGE}:${COMMIT_HASH}"
+
           if [ -n "${{ github.event.inputs.docker_tag_suffix }}" ]; then
-            DOCKER_TAGS="$DOCKER_TAGS,${{ secrets.DOCKERHUB_USERNAME }}/firework-demo:${{ github.event.inputs.docker_tag_suffix }}"
+            DOCKER_TAGS="${DOCKER_TAGS},${IMAGE}:${{ github.event.inputs.docker_tag_suffix }}"
           fi
-          
-          # Also tag as latest
-          DOCKER_TAGS="$DOCKER_TAGS,${{ secrets.DOCKERHUB_USERNAME }}/firework-demo:latest"
-          
+
+          DOCKER_TAGS="${DOCKER_TAGS},${IMAGE}:latest"
+
           echo "tags=$DOCKER_TAGS" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./firework
-          file: ./firework/examples/web/Dockerfile
+          context: ${{ steps.dockerfile.outputs.context }}
+          file: ${{ steps.dockerfile.outputs.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha

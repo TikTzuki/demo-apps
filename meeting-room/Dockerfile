@@ -34,14 +34,18 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy Prisma files
+# Copy Prisma files (client + CLI + migration files)
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+
+# Copy entrypoint script
+COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 
 USER nextjs
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["sh", "entrypoint.sh"]
