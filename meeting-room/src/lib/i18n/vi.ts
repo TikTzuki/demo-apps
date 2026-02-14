@@ -73,6 +73,7 @@ export const vi: Translations = {
     "admin.creating": "Đang tạo...",
     "admin.createOrg": "Tạo văn phòng",
     "admin.createFailed": "Không thể tạo văn phòng",
+    "admin.orgTag": "tag (VD: myorg4)",
 
     // Create room
     "admin.newRoom": "Tạo phòng",

@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {createBookingSchema} from "@/lib/validations";
+import {notifyBookingCreated} from "@/lib/telegram";
 import type {BookingConfirmation} from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -67,6 +68,16 @@ export async function POST(request: NextRequest) {
             endTime: booking.endTime.toISOString(),
             durationMinutes,
         };
+
+        notifyBookingCreated(room.organization.id, {
+            roomId: room.id,
+            roomName: room.name,
+            orgName: room.organization.name,
+            orgTag: room.organization.tag,
+            bookerName: booking.bookerName,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+        });
 
         return NextResponse.json({success: true, data}, {status: 201});
     } catch (e) {

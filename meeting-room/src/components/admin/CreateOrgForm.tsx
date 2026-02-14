@@ -20,14 +20,19 @@ export function CreateOrgForm({
                                   onCreated,
                               }: CreateOrgFormProps) {
     const {adminSecret} = useAdmin();
-  const {t} = useTranslation();
+    const {t} = useTranslation();
     const [name, setName] = useState("");
+    const [tag, setTag] = useState("");
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    function handleTagChange(value: string) {
+        setTag(value.toLowerCase().replace(/[^a-z0-9]/g, ""));
+    }
+
     async function handleSubmit() {
-        if (!name.trim()) return;
+        if (!name.trim() || !tag.trim()) return;
         setLoading(true);
         setError("");
 
@@ -35,6 +40,7 @@ export function CreateOrgForm({
             method: "POST",
             body: JSON.stringify({
                 name: name.trim(),
+                tag: tag.trim(),
                 description: description.trim() || undefined,
             }),
             adminSecret: adminSecret ?? undefined,
@@ -44,11 +50,12 @@ export function CreateOrgForm({
 
         if (res.success) {
             setName("");
+            setTag("");
             setDescription("");
             onCreated();
             onClose();
         } else {
-          setError(res.error ?? t("admin.createFailed"));
+            setError(res.error ?? t("admin.createFailed"));
         }
     }
 
@@ -60,7 +67,7 @@ export function CreateOrgForm({
                     <Building2 className="h-7 w-7 text-gray-600 dark:text-gray-400"/>
                 </div>
                 <h2 className="mb-4 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {t("admin.newOrg")}
+                    {t("admin.newOrg")}
                 </h2>
 
                 <input
@@ -71,6 +78,20 @@ export function CreateOrgForm({
                     className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                     autoFocus
                 />
+
+                <div className="relative mb-3">
+                    <span
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                        #
+                    </span>
+                    <input
+                        type="text"
+                        value={tag}
+                        onChange={(e) => handleTagChange(e.target.value)}
+                        placeholder={t("admin.orgTag")}
+                        className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-8 pr-4 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                    />
+                </div>
 
                 <textarea
                     value={description}
@@ -89,10 +110,10 @@ export function CreateOrgForm({
                 <Button
                     variant="primary"
                     onClick={handleSubmit}
-                    disabled={loading || !name.trim()}
+                    disabled={loading || !name.trim() || !tag.trim()}
                     className="w-full"
                 >
-                  {loading ? t("admin.creating") : t("admin.createOrg")}
+                    {loading ? t("admin.creating") : t("admin.createOrg")}
                 </Button>
             </div>
         </Modal>

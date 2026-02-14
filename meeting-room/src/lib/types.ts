@@ -1,6 +1,7 @@
 export interface OrgListItem {
     id: string;
     name: string;
+    tag: string;
     description: string | null;
     roomCount: number;
 }
@@ -44,6 +45,7 @@ export interface CreateBookingRequest {
 
 export interface CreateOrgRequest {
     name: string;
+    tag: string;
     description?: string;
 }
 

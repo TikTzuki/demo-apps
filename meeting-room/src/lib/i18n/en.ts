@@ -72,6 +72,7 @@ export const en = {
     "admin.creating": "Creating...",
     "admin.createOrg": "Create Organization",
     "admin.createFailed": "Failed to create organization",
+    "admin.orgTag": "tag (e.g. myorg4)",
 
     // Create room
     "admin.newRoom": "New Room",

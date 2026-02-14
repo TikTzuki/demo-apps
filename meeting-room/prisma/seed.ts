@@ -12,6 +12,7 @@ async function main() {
     const acme = await prisma.organization.create({
         data: {
             name: "Acme Corp",
+            tag: "acmecorp",
             description: "Global headquarters — main campus",
         },
     });
@@ -19,6 +20,7 @@ async function main() {
     const startupHub = await prisma.organization.create({
         data: {
             name: "StartupHub",
+            tag: "startuphub",
             description: "Co-working space — downtown",
         },
     });

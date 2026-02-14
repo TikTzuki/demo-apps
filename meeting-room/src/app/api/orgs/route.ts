@@ -12,6 +12,7 @@ export async function GET() {
         const data: OrgListItem[] = orgs.map((org) => ({
             id: org.id,
             name: org.name,
+            tag: org.tag,
             description: org.description,
             roomCount: org._count.rooms,
         }));

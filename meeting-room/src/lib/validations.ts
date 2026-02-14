@@ -1,5 +1,11 @@
 import {z} from "zod";
 
+export const orgTagSchema = z.string()
+    .min(1, "Tag is required")
+    .max(50)
+    .trim()
+    .regex(/^[a-z0-9]+$/, "Tag must be lowercase letters and numbers only (e.g. myorg4)");
+
 export const createBookingSchema = z.object({
     roomId: z.string().uuid(),
     bookerName: z.string().min(1, "Name is required").max(100).trim(),
@@ -12,6 +18,7 @@ export const createBookingSchema = z.object({
 
 export const createOrgSchema = z.object({
     name: z.string().min(1, "Name is required").max(200).trim(),
+    tag: orgTagSchema,
     description: z.string().max(500).trim().optional(),
 });
 

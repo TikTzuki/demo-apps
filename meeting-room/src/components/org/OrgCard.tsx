@@ -44,9 +44,15 @@ export function OrgCard({org, onDeleted}: OrgCardProps) {
                         <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400"/>
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                            {org.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                                {org.name}
+                            </h3>
+                            <span
+                                className="rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                #{org.tag}
+                            </span>
+                        </div>
                         {org.description && (
                             <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                 {org.description}
