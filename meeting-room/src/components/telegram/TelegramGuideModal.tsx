@@ -1,10 +1,9 @@
 "use client";
 
+import {useEffect, useState} from "react";
 import {Modal} from "@/components/ui/modal";
 import {Button} from "@/components/ui/button";
 import {useTranslation} from "@/lib/i18n/context";
-
-const TELEGRAM_BOT_URL = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "your_bot"}`;
 
 interface TelegramGuideModalProps {
     isOpen: boolean;
@@ -13,9 +12,20 @@ interface TelegramGuideModalProps {
 
 export function TelegramGuideModal({isOpen, onClose}: TelegramGuideModalProps) {
     const {t} = useTranslation();
+    const [botUsername, setBotUsername] = useState("");
+
+    useEffect(() => {
+        if (!isOpen) return;
+        fetch("/api/telegram/bot-info")
+            .then((r) => r.json())
+            .then((data: { username: string }) => setBotUsername(data.username))
+            .catch(() => {
+            });
+    }, [isOpen]);
 
     function handleAddBot() {
-        window.open(TELEGRAM_BOT_URL, "_blank", "noopener,noreferrer");
+        const url = `https://t.me/${botUsername || "your_bot"}`;
+        window.open(url, "_blank", "noopener,noreferrer");
         onClose();
     }
 
