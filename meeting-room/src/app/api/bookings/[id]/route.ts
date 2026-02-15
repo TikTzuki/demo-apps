@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {notifyBookingCancelled} from "@/lib/telegram";
+import {notifyBookingCancelled as notifyBookingCancelledDiscord} from "@/lib/discord";
 import {z} from "zod";
 
 const cancelBookingSchema = z.object({
@@ -45,7 +46,7 @@ export async function DELETE(
 
         await prisma.booking.delete({where: {id}});
 
-        notifyBookingCancelled(booking.room.organization.id, {
+        const notificationData = {
             roomId: booking.room.id,
             roomName: booking.room.name,
             orgName: booking.room.organization.name,
@@ -53,7 +54,10 @@ export async function DELETE(
             bookerName: booking.bookerName,
             startTime: booking.startTime,
             endTime: booking.endTime,
-        });
+        };
+
+        notifyBookingCancelled(booking.room.organization.id, notificationData);
+        notifyBookingCancelledDiscord(booking.room.organization.id, notificationData);
 
         return NextResponse.json({success: true});
     } catch {

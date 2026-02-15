@@ -14,8 +14,9 @@ model Organization {
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  rooms          MeetingRoom[]
-  telegramGroups TelegramGroup[]
+  rooms           MeetingRoom[]
+  telegramGroups  TelegramGroup[]
+  discordChannels DiscordChannel[]
 
   @@map("organizations")
 }
@@ -31,6 +32,20 @@ model TelegramGroup {
 
   @@unique([chatId, organizationId])
   @@map("telegram_groups")
+}
+
+model DiscordChannel {
+  id             String   @id @default(uuid())
+  channelId      String   @map("channel_id") @db.VarChar(100)
+  guildId        String   @map("guild_id") @db.VarChar(100)
+  guildName      String?  @map("guild_name") @db.VarChar(200)
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, organizationId])
+  @@map("discord_channels")
 }
 
 model MeetingRoom {

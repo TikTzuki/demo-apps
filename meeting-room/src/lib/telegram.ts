@@ -70,28 +70,26 @@ export function buildBookingCreatedMessage(data: BookingNotificationData): strin
     // let l = buildRoomUrl(data.roomId);
     let l = "https://testhehe.tiktuzki.com/rooms/123";
     return [
-        `📅 <b>Đặt phòng mới</b> #${data.orgTag}`,
+        `📅 <a href="${buildRoomUrl(data.roomId)}"><b>Đặt phòng mới</b> #${data.orgTag}</a>`,
         "",
-        `🏢 <b>Phòng:</b> ${data.roomName} — ${data.orgName}`,
-        `👤 <b>Người đặt:</b> ${data.bookerName}`,
-        `📆 <b>Ngày:</b> ${formatDate(data.startTime)}`,
-        `🕐 <b>Thời gian:</b> ${formatTime(data.startTime)} – ${formatTime(data.endTime)}`,
+        `<b>Phòng:</b> ${data.roomName} — ${data.orgName}`,
+        `<b>Người đặt:</b> ${data.bookerName}`,
+        `<b>Ngày:</b> ${formatDate(data.startTime)}`,
+        `<b>Thời gian:</b> ${formatTime(data.startTime)} – ${formatTime(data.endTime)}`,
         "",
-        `<a href="${buildRoomUrl(data.roomId)}">xem</a>`,
     ].join("\n");
 }
 
 export function buildBookingCancelledMessage(data: BookingNotificationData): string {
     // let l = buildRoomUrl(data.roomId);
     return [
-        `❌ <b>Huỷ đặt phòng</b> #${data.orgTag}`,
+        `❌ <a href="${buildRoomUrl(data.roomId)}"><b>Huỷ đặt phòng</b> #${data.orgTag}</a>`,
         "",
-        `🏢 <b>Phòng:</b> ${data.roomName} — ${data.orgName}`,
-        `👤 <b>Người đặt:</b> ${data.bookerName}`,
-        `📆 <b>Ngày:</b> ${formatDate(data.startTime)}`,
-        `🕐 <b>Thời gian:</b> ${formatTime(data.startTime)} – ${formatTime(data.endTime)}`,
+        `<b>Phòng:</b> ${data.roomName} — ${data.orgName}`,
+        `<b>Người đặt:</b> ${data.bookerName}`,
+        `<b>Ngày:</b> ${formatDate(data.startTime)}`,
+        `<b>Thời gian:</b> ${formatTime(data.startTime)} – ${formatTime(data.endTime)}`,
         "",
-        `<a href="${buildRoomUrl(data.roomId)}">xem</a>`,
     ].join("\n");
 }
 

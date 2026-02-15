@@ -12,15 +12,18 @@
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "discord:register": "npx tsx scripts/register-discord-commands.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@discordjs/rest": "^2.6.0",
     "@prisma/client": "^6.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "discord-api-types": "^0.38.39",
     "lucide-react": "^0.563.0",
     "next": "^14.2.35",
     "postcss": "^8.5.6",

@@ -104,6 +104,15 @@ export const vi: Translations = {
     // Theme
     "theme.label": "Giao diện",
 
+    // Discord
+    "discord.addToDiscord": "Thêm vào Discord",
+    "discord.guideTitle": "Thông báo Discord",
+    "discord.guideStep1": "1. Bấm nút bên dưới để mời bot vào server",
+    "discord.guideStep2": "2. Trong kênh bất kỳ, gõ:",
+    "discord.guideStep3": "3. Bot sẽ gửi thông báo đặt phòng vào kênh đó",
+    "discord.guideUnlink": "Để ngừng thông báo, gõ:",
+    "discord.addBot": "Thêm Bot vào Server",
+
     // Booking errors
     "booking.createFailed": "Không thể tạo lịch đặt",
     "booking.cancelFailed": "Không thể huỷ lịch đặt",

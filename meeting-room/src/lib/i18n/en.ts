@@ -103,6 +103,15 @@ export const en = {
     // Theme
     "theme.label": "Theme",
 
+    // Discord
+    "discord.addToDiscord": "Add to Discord",
+    "discord.guideTitle": "Discord Notifications",
+    "discord.guideStep1": "1. Click the button below to invite the bot to your server",
+    "discord.guideStep2": "2. In any channel, type:",
+    "discord.guideStep3": "3. The bot will send booking notifications to that channel",
+    "discord.guideUnlink": "To stop notifications, type:",
+    "discord.addBot": "Add Bot to Server",
+
     // Booking errors
     "booking.createFailed": "Failed to create booking",
     "booking.cancelFailed": "Failed to cancel booking",
