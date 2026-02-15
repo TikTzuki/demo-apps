@@ -112,6 +112,15 @@ export const en = {
     "discord.guideUnlink": "To stop notifications, type:",
     "discord.addBot": "Add Bot to Server",
 
+    // Telegram
+    "telegram.addToTelegram": "Add to Telegram",
+    "telegram.guideTitle": "Telegram Notifications",
+    "telegram.guideStep1": "1. Click the button below to add the bot to your group",
+    "telegram.guideStep2": "2. In the group, type:",
+    "telegram.guideStep3": "3. The bot will send booking notifications to that group",
+    "telegram.guideUnlink": "To stop notifications, type:",
+    "telegram.addBot": "Add Bot to Group",
+
     // Booking errors
     "booking.createFailed": "Failed to create booking",
     "booking.cancelFailed": "Failed to cancel booking",

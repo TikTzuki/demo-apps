@@ -113,6 +113,15 @@ export const vi: Translations = {
     "discord.guideUnlink": "Để ngừng thông báo, gõ:",
     "discord.addBot": "Thêm Bot vào Server",
 
+    // Telegram
+    "telegram.addToTelegram": "Thêm vào Telegram",
+    "telegram.guideTitle": "Thông báo Telegram",
+    "telegram.guideStep1": "1. Bấm nút bên dưới để thêm bot vào nhóm",
+    "telegram.guideStep2": "2. Trong nhóm, gõ:",
+    "telegram.guideStep3": "3. Bot sẽ gửi thông báo đặt phòng vào nhóm đó",
+    "telegram.guideUnlink": "Để ngừng thông báo, gõ:",
+    "telegram.addBot": "Thêm Bot vào Nhóm",
+
     // Booking errors
     "booking.createFailed": "Không thể tạo lịch đặt",
     "booking.cancelFailed": "Không thể huỷ lịch đặt",

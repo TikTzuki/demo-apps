@@ -1,8 +1,6 @@
 #!/bin/sh
-set -e
+set -ex
 
-echo "Running database migrations..."
-npx prisma migrate deploy
+npx --no-update-notifier prisma migrate deploy
 
-echo "Starting server..."
-exec node server.js
+exec /sbin/tini -- node server.js
