@@ -4,36 +4,20 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy root package.json and library source
-COPY package.json tsconfig.json tsup.config.ts ./
+COPY package.json ./
+COPY public ./public
 COPY src ./src
+COPY vite.config.ts ./
+COPY index.html ./
 
 # Build the library
 RUN npm install && npm run build
-
-# Copy example app
-WORKDIR /app/example
-COPY examples/web/package.json ./
-COPY examples/web/vite.config.ts ./
-COPY examples/web/index.html ./
-COPY examples/web/src ./src
-
-# Remove workspace dependency from package.json and install
-RUN sed -i '/"@tiktuzki\/firework": "workspace:\*"/d' package.json && \
-    npm install
-
-# Manually copy the built library
-RUN mkdir -p node_modules/@tiktuzki/firework && \
-    cp -r /app/dist node_modules/@tiktuzki/firework/ && \
-    cp /app/package.json node_modules/@tiktuzki/firework/
-
-# Build the example app
-RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built assets from builder stage
-COPY --from=builder /app/example/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Add nginx configuration for SPA
 RUN echo 'server { \
