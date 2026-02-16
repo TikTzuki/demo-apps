@@ -1,12 +1,14 @@
 import {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {HappyNewYear} from './HappyNewYear';
-import {applyPlugin, FireworkCanvas, randomPlugin} from '@tiktuzki/firework';
+import type {FireworksHandlers} from '@fireworks-js/react';
+import {Fireworks} from '@fireworks-js/react';
 
 function App() {
   const [started, setStarted] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+    const fireworksRef = useRef<FireworksHandlers>(null);
 
   useEffect(() => {
     audioRef.current = new Audio('./public/music.mp3');
@@ -16,7 +18,6 @@ function App() {
 
   const handleStart = () => {
     setFadeOut(true);
-    // Play music on user gesture
     console.log('Attempting to play music...');
     audioRef.current?.play().catch(e => {
       console.log(e)
@@ -39,13 +40,41 @@ function App() {
 
   return (
       <div className="app">
-        <FireworkCanvas
-            autoLaunch={true}
-            launchInterval={1200}
-            config={applyPlugin(randomPlugin)}
-        >
+          <Fireworks
+              ref={fireworksRef}
+              options={{
+                  rocketsPoint: {min: 0, max: 100},
+                  hue: {min: 0, max: 360},
+                  delay: {min: 15, max: 30},
+                  decay: {min: 0.005, max: 0.015},
+                  speed: 1,
+                  acceleration: 1.02,
+                  friction: 0.97,
+                  gravity: 1.2,
+                  particles: 120,
+                  traceLength: 4,
+                  traceSpeed: 8,
+                  explosion: 3,
+                  intensity: 25,
+                  flickering: 30,
+                  lineStyle: 'round',
+                  lineWidth: {
+                      explosion: {min: 1, max: 3},
+                      trace: {min: 1, max: 2},
+                  },
+                  brightness: {min: 50, max: 80},
+              }}
+              style={{
+                  position: 'fixed',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 0,
+              }}
+          />
+          <div className="overlay">
           <HappyNewYear/>
-        </FireworkCanvas>
+          </div>
       </div>
   );
 }

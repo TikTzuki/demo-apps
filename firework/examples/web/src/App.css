@@ -71,6 +71,21 @@
     overflow: hidden;
 }
 
+/* ── Content overlay on top of fireworks ── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay > * {
+    pointer-events: auto;
+}
+
 /* ── Animations ── */
 @keyframes fadeInUp {
     from {
