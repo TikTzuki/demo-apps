@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(200)
+  color     String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  members   Member[]
+
+  @@map("teams")
+}
+
+model Member {
+  id          String    @id @default(uuid())
+  name        String    @db.VarChar(200)
+  email       String?   @db.VarChar(200)
+  checkedIn   Boolean   @default(false) @map("checked_in")
+  checkedInAt DateTime? @map("checked_in_at")
+  teamId      String    @map("team_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("members")
+}
+
+model LixiSession {
+  id        String     @id @default(uuid())
+  total     Int
+  amounts   Int[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  spins     LixiSpin[]
+
+  @@map("lixi_sessions")
+}
+
+model LixiSpin {
+  id         String       @id @default(uuid())
+  sessionId  String       @map("session_id")
+  playerName String       @map("player_name") @db.VarChar(200)
+  amount     Int
+  spinOrder  Int          @map("spin_order")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  session    LixiSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, playerName])
+  @@map("lixi_spins")
+}

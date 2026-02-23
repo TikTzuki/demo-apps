@@ -1,16 +1,17 @@
-version: "3.8"
-
 services:
-  checkin:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: hackathon-checkin
+    container_name: checkin-app
     ports:
       - "3000:3000"
-    volumes:
-      # Mount data directory to persist check-in data
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/checkin?schema=public
+    depends_on:
+      - db
     restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,95 +1,115 @@
-import {promises as fs} from "fs";
-import path from "path";
-import {CheckinStats, Database, Member, Team, TeamStats} from "./types";
+import {prisma} from "./prisma";
+import {CheckinStats, Member, Team, TeamStats} from "./types";
 import {getTeamColor} from "./utils";
 
-const DB_PATH = path.join(process.cwd(), "data", "database.json");
-
-export async function readDatabase(): Promise<Database> {
-    try {
-        const data = await fs.readFile(DB_PATH, "utf-8");
-        return JSON.parse(data);
-    } catch {
-        // Return empty database if file doesn't exist
-        return {teams: []};
-    }
+function formatMember(m: {
+    id: string;
+    name: string;
+    email: string | null;
+    checkedIn: boolean;
+    checkedInAt: Date | null
+}): Member {
+    return {
+        id: m.id,
+        name: m.name,
+        email: m.email ?? undefined,
+        checkedIn: m.checkedIn,
+        checkedInAt: m.checkedInAt?.toISOString(),
+    };
 }
 
-export async function writeDatabase(data: Database): Promise<void> {
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
+function formatTeam(t: {
+    id: string;
+    name: string;
+    color: string;
+    members: { id: string; name: string; email: string | null; checkedIn: boolean; checkedInAt: Date | null }[]
+}): Team {
+    return {
+        id: t.id,
+        name: t.name,
+        color: t.color,
+        members: t.members.map(formatMember),
+    };
 }
 
 export async function getTeams(): Promise<Team[]> {
-    const db = await readDatabase();
-    return db.teams;
+    const teams = await prisma.team.findMany({
+        include: {members: true},
+        orderBy: {createdAt: "asc"},
+    });
+    return teams.map(formatTeam);
 }
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
-    const db = await readDatabase();
-    return db.teams.find((t) => t.id === teamId) || null;
+    const team = await prisma.team.findUnique({
+        where: {id: teamId},
+        include: {members: true},
+    });
+    return team ? formatTeam(team) : null;
 }
 
 export async function checkinMember(
     teamId: string,
     memberId: string
 ): Promise<{ success: boolean; member?: Member; error?: string }> {
-    const db = await readDatabase();
-    const team = db.teams.find((t) => t.id === teamId);
-
-    if (!team) {
-        return {success: false, error: "Team không tồn tại"};
-    }
-
-    const member = team.members.find((m) => m.id === memberId);
+    const member = await prisma.member.findUnique({
+        where: {id: memberId},
+    });
 
     if (!member) {
         return {success: false, error: "Thành viên không tồn tại"};
+    }
+
+    if (member.teamId !== teamId) {
+        return {success: false, error: "Team không tồn tại"};
     }
 
     if (member.checkedIn) {
         return {success: false, error: "Thành viên đã check-in rồi"};
     }
 
-    member.checkedIn = true;
-    member.checkedInAt = new Date().toISOString();
+    const updated = await prisma.member.update({
+        where: {id: memberId},
+        data: {checkedIn: true, checkedInAt: new Date()},
+    });
 
-    await writeDatabase(db);
-
-    return {success: true, member};
+    return {success: true, member: formatMember(updated)};
 }
 
 export async function uncheckinMember(
     memberId: string
 ): Promise<{ success: boolean; member?: Member; error?: string }> {
-    const db = await readDatabase();
+    const member = await prisma.member.findUnique({
+        where: {id: memberId},
+    });
 
-    for (const team of db.teams) {
-        const member = team.members.find((m) => m.id === memberId);
-        if (member) {
-            if (!member.checkedIn) {
-                return {success: false, error: "Thành viên chưa check-in"};
-            }
-
-            member.checkedIn = false;
-            member.checkedInAt = undefined;
-
-            await writeDatabase(db);
-
-            return {success: true, member};
-        }
+    if (!member) {
+        return {success: false, error: "Thành viên không tồn tại"};
     }
 
-    return {success: false, error: "Thành viên không tồn tại"};
+    if (!member.checkedIn) {
+        return {success: false, error: "Thành viên chưa check-in"};
+    }
+
+    const updated = await prisma.member.update({
+        where: {id: memberId},
+        data: {checkedIn: false, checkedInAt: null},
+    });
+
+    return {success: true, member: formatMember(updated)};
 }
 
 export async function getStats(): Promise<CheckinStats> {
-    const db = await readDatabase();
+    const teams = await prisma.team.findMany({
+        include: {members: true},
+        orderBy: {createdAt: "asc"},
+    });
 
     let totalMembers = 0;
     let checkedIn = 0;
     const teamStats: TeamStats[] = [];
 
-    db.teams.forEach((team, index) => {
+    teams.forEach((team, index) => {
         const teamTotal = team.members.length;
         const teamCheckedIn = team.members.filter((m) => m.checkedIn).length;
 
@@ -114,41 +134,4 @@ export async function getStats(): Promise<CheckinStats> {
         percentage: Math.round(percentage * 10) / 10,
         teamStats,
     };
-}
-
-// Initialize database from old format
-export async function initializeDatabase(): Promise<void> {
-    const oldDbPath = path.join(process.cwd(), "database.json");
-
-    try {
-        const oldData = await fs.readFile(oldDbPath, "utf-8");
-        const parsed = JSON.parse(oldData);
-
-        // Check if it's old format (teams without ids)
-        if (parsed.teams && parsed.teams[0] && !parsed.teams[0].id) {
-            const newTeams: Team[] = parsed.teams.map(
-                (
-                    team: { name: string; members: { name: string; email?: string }[] },
-                    index: number
-                ) => ({
-                    id: `team-${index + 1}`,
-                    name: team.name,
-                    color: getTeamColor(index),
-                    members: team.members.map(
-                        (member: { name: string; email?: string }, mIndex: number) => ({
-                            id: `member-${index + 1}-${mIndex + 1}`,
-                            name: member.name.trim(),
-                            email: member.email,
-                            checkedIn: false,
-                        })
-                    ),
-                })
-            );
-
-            await writeDatabase({teams: newTeams});
-            console.log("Database initialized successfully");
-        }
-    } catch {
-        console.log("No old database to migrate");
-    }
 }
