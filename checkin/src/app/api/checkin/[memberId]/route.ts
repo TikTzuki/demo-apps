@@ -5,10 +5,11 @@ export const dynamic = "force-dynamic";
 
 export async function DELETE(
     request: Request,
-    {params}: { params: { memberId: string } }
+    {params}: { params: Promise<{ memberId: string }> }
 ) {
     try {
-        const result = await uncheckinMember(params.memberId);
+        const {memberId} = await params;
+        const result = await uncheckinMember(memberId);
 
         if (!result.success) {
             return NextResponse.json(

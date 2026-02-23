@@ -491,6 +491,18 @@ export default function LixiPage() {
                         }}>
                             🧧 Vòng Quay Lì Xì 🧧
                         </h1>
+                        <p style={{
+                            color: "var(--light-gold)",
+                            fontSize: "clamp(0.85rem, 2.5vw, 1rem)",
+                            textAlign: "center",
+                            marginBottom: "1.2rem",
+                            lineHeight: 1.6,
+                            fontStyle: "italic",
+                            maxWidth: "min(360px, 90vw)",
+                            opacity: 0.9,
+                        }}>
+                            🌸 Chúc cả nhà năm mới zui zẻ zui zẻ, hay ăn chóng béo, tiền đầy túi, tình đầy tymmm 🌸
+                        </p>
                         <div style={{
                             background: "linear-gradient(135deg, #7b0000, #c0392b)",
                             border: "2px solid var(--bright-gold)",
