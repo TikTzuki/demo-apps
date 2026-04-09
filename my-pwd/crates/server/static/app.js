@@ -4,6 +4,7 @@ let passwords = [];
 let groups = [];
 let currentUser = null;
 let editingId = null;
+let showAllPasswords = false;
 let colWidths = [200, 170, 200, 90]; // Service, Username, Password, Actions
 
 // ── Init ──────────────────────────────────────────────────
@@ -127,7 +128,7 @@ function renderHeader() {
     return `<div class="grid items-center text-[10px] uppercase tracking-wider text-gray-500 px-1 mb-1 select-none" style="grid-template-columns: ${gt}">
     <div class="relative pr-2">Service<span class="resize-handle" data-col="0"></span></div>
     <div class="relative pr-2">Username<span class="resize-handle" data-col="1"></span></div>
-    <div class="relative pr-2">Password<span class="resize-handle" data-col="2"></span></div>
+    <div class="relative pr-2 cursor-pointer hover:text-gray-300" onclick="toggleShowAll()">Password <span class="text-[9px] text-gray-600">${showAllPasswords ? '(hide)' : '(show)'}</span><span class="resize-handle" data-col="2"></span></div>
     <div></div>
   </div>`;
 }
@@ -147,14 +148,11 @@ function renderRow(p, showBorder) {
       <span class="text-gray-200">${esc(p.service)}</span>
       ${p.link ? `<a href="${esc(p.link)}" target="_blank" class="ml-1 text-indigo-400/50 hover:text-indigo-300 text-[10px]">&#8599;</a>` : ''}
     </div>
-    <div class="truncate pr-2 text-gray-400">
+    <div class="truncate pr-2 text-gray-400 cursor-pointer hover:text-gray-200" onclick="event.stopPropagation();copyText('${esc(p.username).replace(/'/g, "\\'")}')">
       ${esc(p.username) || '<span class="text-gray-600">-</span>'}
-      ${p.username ? `<span class="btn-icon" onclick="event.stopPropagation();copyText('${esc(p.username).replace(/'/g, "\\'")}')">cp</span>` : ''}
     </div>
-    <div class="flex items-center gap-1 pr-2 min-w-0">
-      <span class="mono text-gray-400 truncate" id="pass-${p.id}">••••••••</span>
-      <span class="btn-icon" onclick="event.stopPropagation();togglePassword('${p.id}')" id="toggle-${p.id}">show</span>
-      <span class="btn-icon" onclick="event.stopPropagation();copyText(getPasswordValue('${p.id}'))">cp</span>
+    <div class="truncate pr-2 mono text-gray-400 cursor-pointer hover:text-gray-200" onclick="event.stopPropagation();copyText(getPasswordValue('${p.id}'))">
+      ${showAllPasswords ? esc(p.password) || '-' : '••••••••'}
     </div>
     <div class="flex items-center gap-0.5 justify-end">
       <span class="btn-icon" onclick="event.stopPropagation();startEdit('${p.id}')">edit</span>
@@ -300,19 +298,9 @@ function getPasswordValue(id) {
     return p ? p.password : '';
 }
 
-function togglePassword(id) {
-    const el = document.getElementById(`pass-${id}`);
-    const btn = document.getElementById(`toggle-${id}`);
-    const p = passwords.find(p => p.id === id);
-    if (!p) return;
-
-    if (btn.textContent === 'show') {
-        el.textContent = p.password || '-';
-        btn.textContent = 'hide';
-    } else {
-        el.textContent = '••••••••';
-        btn.textContent = 'show';
-    }
+function toggleShowAll() {
+    showAllPasswords = !showAllPasswords;
+    renderPasswords();
 }
 
 function copyText(text) {
