@@ -75,6 +75,10 @@ pub struct SessionData {
     pub email: String,
     pub name: String,
     pub google_id: String,
+    /// Whether this user has already set up a master password (drives the
+    /// setup-vs-unlock screen without relying on the URL path).
+    #[serde(default)]
+    pub master_set: bool,
     /// Base64-encoded 32-byte encryption key (derived from master password).
     /// Only present after master password is verified.
     pub encryption_key: Option<String>,

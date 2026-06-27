@@ -45,10 +45,10 @@ pub(crate) async fn list(
 ) -> Result<Json<Vec<PasswordEntry>>, ServerError> {
     let sd = require_session(&session).await?;
     let key = get_key(&sd)?;
-    let mut entries = state.notion.list_passwords(&sd.email, &key).await?;
+    let mut entries = state.store.list_passwords(&sd.email, &key).await?;
 
     // Resolve group names.
-    let groups = state.notion.list_groups(&sd.email).await?;
+    let groups = state.store.list_groups(&sd.email).await?;
     for entry in &mut entries {
         if let Some(gid) = &entry.group_id {
             entry.group_name = groups.iter().find(|g| &g.id == gid).map(|g| g.name.clone());
@@ -65,7 +65,7 @@ pub(crate) async fn create(
 ) -> Result<Json<PasswordEntry>, ServerError> {
     let sd = require_session(&session).await?;
     let key = get_key(&sd)?;
-    let entry = state.notion.create_password(&input, &sd.email, &key).await?;
+    let entry = state.store.create_password(&input, &sd.email, &key).await?;
     Ok(Json(entry))
 }
 
@@ -78,7 +78,7 @@ pub(crate) async fn update(
     let sd = require_session(&session).await?;
     let key = get_key(&sd)?;
     let entry = state
-        .notion
+        .store
         .update_password(&id, &input, &sd.email, &key)
         .await?;
     Ok(Json(entry))
@@ -90,6 +90,6 @@ pub(crate) async fn delete(
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ServerError> {
     let sd = require_session(&session).await?;
-    state.notion.delete_password(&id, &sd.email).await?;
+    state.store.delete_password(&id, &sd.email).await?;
     Ok(Json(serde_json::json!({ "ok": true })))
 }

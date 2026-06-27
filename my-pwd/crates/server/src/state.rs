@@ -1,9 +1,9 @@
 //! Shared application state.
 
-use oauth2::{
-    basic::BasicClient, EndpointNotSet, EndpointSet,
-};
-use project_core::notion::NotionClient;
+use std::sync::Arc;
+
+use oauth2::{basic::BasicClient, EndpointNotSet, EndpointSet};
+use project_core::Store;
 
 use crate::config::Config;
 
@@ -16,9 +16,16 @@ pub(crate) type OAuthClient = BasicClient<
     EndpointSet,    // HasTokenUrl
 >;
 
+/// Shared, cheaply-cloneable application state. The struct is public so the
+/// desktop crate can hold it, but its fields stay crate-private.
 #[derive(Clone)]
-pub(crate) struct AppState {
-    pub notion: NotionClient,
-    pub oauth: OAuthClient,
-    pub config: Config,
+pub struct AppState {
+    /// Pluggable storage backend: Notion (web) or local SQLite (desktop).
+    pub(crate) store: Arc<dyn Store>,
+    /// Google OAuth client. `None` in local (master-password-only) mode.
+    pub(crate) oauth: Option<OAuthClient>,
+    pub(crate) config: Config,
+    /// Master-password-only auth against a single local user (desktop). When
+    /// false, authentication goes through Google OAuth (web).
+    pub(crate) local_auth: bool,
 }

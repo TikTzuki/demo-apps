@@ -1,7 +1,7 @@
 "use client";
 
-import {useEffect, useState, useCallback} from "react";
-import {useParams} from "next/navigation";
+import {Suspense, useEffect, useState, useCallback} from "react";
+import {useSearchParams} from "next/navigation";
 import Link from "next/link";
 import {
     getDepartments,
@@ -18,14 +18,15 @@ import {
 import LoadingSpinner from "@/components/LoadingSpinner";
 import CVUploadModal from "@/components/CVUploadModal";
 import JDFormModal from "@/components/JDFormModal";
+import SheetsSyncCard from "@/components/SheetsSyncCard";
 
 type Tab = "cvs" | "jds";
 type SortKey = "uploaded_at" | "review_score" | "best_match" | "status";
 type SortDir = "asc" | "desc";
 
-export default function DepartmentPage() {
-    const params = useParams();
-    const departmentId = Number(params.id);
+function DepartmentPageInner() {
+    const searchParams = useSearchParams();
+    const departmentId = Number(searchParams.get("id"));
 
     const [department, setDepartment] = useState<Department | null>(null);
     const [cvs, setCVs] = useState<CV[]>([]);
@@ -192,6 +193,15 @@ export default function DepartmentPage() {
                 </div>
             </div>
 
+            {/* Google Sheets Sync */}
+            {department && (
+                <SheetsSyncCard
+                    department={department}
+                    onUpdated={(d) => setDepartment(d)}
+                    onSynced={loadData}
+                />
+            )}
+
             {/* Tabs */}
             <div className="mt-6 border-b border-gray-200">
                 <nav className="-mb-px flex gap-6">
@@ -317,7 +327,7 @@ export default function DepartmentPage() {
                                         >
                         <span className="inline-flex items-center gap-1">
                           Upload Date
-                            {sortKey === "uploaded_at" && (sortDir === "desc" ? " \u2193" : " \u2191")}
+                            {sortKey === "uploaded_at" && (sortDir === "desc" ? " ↓" : " ↑")}
                         </span>
                                         </th>
                                         <th
@@ -326,7 +336,7 @@ export default function DepartmentPage() {
                                         >
                         <span className="inline-flex items-center gap-1">
                           Review
-                            {sortKey === "review_score" && (sortDir === "desc" ? " \u2193" : " \u2191")}
+                            {sortKey === "review_score" && (sortDir === "desc" ? " ↓" : " ↑")}
                         </span>
                                         </th>
                                         <th
@@ -335,7 +345,7 @@ export default function DepartmentPage() {
                                         >
                         <span className="inline-flex items-center gap-1">
                           Best Match
-                            {sortKey === "best_match" && (sortDir === "desc" ? " \u2193" : " \u2191")}
+                            {sortKey === "best_match" && (sortDir === "desc" ? " ↓" : " ↑")}
                         </span>
                                         </th>
                                         <th
@@ -344,7 +354,7 @@ export default function DepartmentPage() {
                                         >
                         <span className="inline-flex items-center gap-1">
                           Status
-                            {sortKey === "status" && (sortDir === "desc" ? " \u2193" : " \u2191")}
+                            {sortKey === "status" && (sortDir === "desc" ? " ↓" : " ↑")}
                         </span>
                                         </th>
                                         <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -360,7 +370,7 @@ export default function DepartmentPage() {
                                         >
                                             <td className="px-6 py-4">
                                                 <Link
-                                                    href={`/departments/${departmentId}/cvs/${cv.id}`}
+                                                    href={`/cv?dept=${departmentId}&id=${cv.id}`}
                                                     className="flex items-center gap-3 text-sm font-medium text-gray-900 hover:text-indigo-600"
                                                 >
                                                     <svg
@@ -441,7 +451,7 @@ export default function DepartmentPage() {
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
-                                                        href={`/departments/${departmentId}/cvs/${cv.id}`}
+                                                        href={`/cv?dept=${departmentId}&id=${cv.id}`}
                                                         className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600"
                                                         title="View"
                                                     >
@@ -650,5 +660,19 @@ export default function DepartmentPage() {
                 />
             )}
         </div>
+    );
+}
+
+export default function DepartmentPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex min-h-[60vh] items-center justify-center">
+                    <LoadingSpinner size="lg" label="Loading department..."/>
+                </div>
+            }
+        >
+            <DepartmentPageInner/>
+        </Suspense>
     );
 }

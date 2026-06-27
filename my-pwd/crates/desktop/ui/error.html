@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>my pwd — error</title>
+    <style>
+        html, body {
+            margin: 0;
+            background: #0a0a0a;
+            color: #e5e7eb;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .wrap {
+            max-width: 34rem;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin: 0 0 .75rem;
+            color: #f87171;
+        }
+
+        p {
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+
+        .box {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: .6rem;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 13px;
+            color: #fca5a5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>my pwd couldn't start</h1>
+    <p>The local vault could not be opened. The error was:</p>
+    <div class="box" id="err">(unknown error)</div>
+    <p style="margin-top:1.5rem">Check that the app data folder is writable, then
+        relaunch.</p>
+</div>
+<script>
+    if (window.__ERR__) {
+        document.getElementById('err').textContent = window.__ERR__;
+    }
+</script>
+</body>
+</html>

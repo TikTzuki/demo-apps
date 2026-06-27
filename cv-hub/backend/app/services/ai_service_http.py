@@ -8,8 +8,9 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 API_URL = (settings.ANTHROPIC_API_BASE_URL or "https://api.anthropic.com").rstrip("/")
-MODEL = "claude-sonnet-4-6"
+MODEL = settings.ANTHROPIC_MODEL
 print("Using Anthropic API URL:", API_URL)
+print("Using Anthropic model:", MODEL)
 
 
 def _call_messages(system: str, user_content: str, max_tokens: int = 2048) -> str:

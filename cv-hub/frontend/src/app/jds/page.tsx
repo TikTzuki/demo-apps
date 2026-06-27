@@ -200,7 +200,7 @@ export default function JDManagementPage() {
                             >
                                 <td className="px-6 py-4">
                                     <Link
-                                        href={`/jds/${jd.id}`}
+                                        href={`/jd?id=${jd.id}`}
                                         className="block max-w-md hover:text-indigo-600"
                                     >
                                         <p className="text-sm font-medium text-gray-900 hover:text-indigo-600">
@@ -215,7 +215,7 @@ export default function JDManagementPage() {
                                 </td>
                                 <td className="px-6 py-4">
                                     <Link
-                                        href={`/departments/${jd.department_id}`}
+                                        href={`/department?id=${jd.department_id}`}
                                         className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
                                     >
                                         {getDeptName(jd.department_id)}
@@ -227,7 +227,7 @@ export default function JDManagementPage() {
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <Link
-                                            href={`/jds/${jd.id}`}
+                                            href={`/jd?id=${jd.id}`}
                                             className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600"
                                             title="View"
                                         >

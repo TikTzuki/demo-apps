@@ -1,7 +1,7 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {useParams, useRouter} from "next/navigation";
+import {Suspense, useEffect, useState} from "react";
+import {useSearchParams, useRouter} from "next/navigation";
 import Link from "next/link";
 import {
     getJD,
@@ -13,10 +13,10 @@ import {
 } from "@/lib/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-export default function JDDetailPage() {
-    const params = useParams();
+function JDDetailPageInner() {
+    const searchParams = useSearchParams();
     const router = useRouter();
-    const jdId = Number(params.id);
+    const jdId = Number(searchParams.get("id"));
 
     const [jd, setJD] = useState<JD | null>(null);
     const [department, setDepartment] = useState<Department | null>(null);
@@ -125,7 +125,7 @@ export default function JDDetailPage() {
                     <h1 className="text-2xl font-bold text-gray-900">{jd.title}</h1>
                     <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
                         <Link
-                            href={`/departments/${jd.department_id}`}
+                            href={`/department?id=${jd.department_id}`}
                             className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
                         >
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
@@ -287,5 +287,19 @@ export default function JDDetailPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function JDDetailPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex min-h-[60vh] items-center justify-center">
+                    <LoadingSpinner size="lg" label="Loading job description..."/>
+                </div>
+            }
+        >
+            <JDDetailPageInner/>
+        </Suspense>
     );
 }

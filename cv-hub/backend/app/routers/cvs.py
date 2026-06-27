@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -115,6 +116,7 @@ async def upload_cv(
         department_id=department_id,
         file_path=str(file_path),
         extracted_text=extracted_text,
+        status_updated_at=datetime.now(timezone.utc),
     )
     db.add(cv)
     db.commit()
@@ -171,7 +173,9 @@ async def update_cv_status(
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found.")
 
-    cv.status = payload.status
+    if cv.status != payload.status:
+        cv.status = payload.status
+        cv.status_updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(cv)
 

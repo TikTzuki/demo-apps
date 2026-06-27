@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import {usePathname} from "next/navigation";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useEffect, useState} from "react";
-import {useRouter} from "next/navigation";
 import {getDepartments, clearAdminKey, type Department} from "@/lib/api";
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const router = useRouter();
+
+    // A department is "active" both on its own page (/department?id=X) and on
+    // a CV detail page nested under it (/cv?dept=X).
+    const activeDeptId =
+        pathname === "/department"
+            ? searchParams.get("id")
+            : pathname === "/cv"
+                ? searchParams.get("dept")
+                : null;
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -114,13 +123,11 @@ export default function Sidebar() {
                             </p>
                         ) : (
                             departments.map((dept) => {
-                                const isActive = pathname.startsWith(
-                                    `/departments/${dept.id}`
-                                );
+                                const isActive = activeDeptId === String(dept.id);
                                 return (
                                     <Link
                                         key={dept.id}
-                                        href={`/departments/${dept.id}`}
+                                        href={`/department?id=${dept.id}`}
                                         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                             isActive
                                                 ? "bg-indigo-50 text-indigo-700"

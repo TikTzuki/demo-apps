@@ -14,8 +14,23 @@ class DepartmentResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
+    sheet_id: Optional[str] = None
+    last_synced_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class SheetConfigUpdate(BaseModel):
+    sheet_url: str = Field(..., min_length=1)
+
+
+class SheetSyncResult(BaseModel):
+    department_id: int
+    rows_pushed: int
+    status_updates_applied: int
+    conflicts_skipped: int
+    invalid_status_values: int
+    synced_at: str
 
 
 # ─── Job Description ─────────────────────────────────────────────────────────

@@ -26,7 +26,7 @@ pub(crate) async fn list(
     session: Session,
 ) -> Result<Json<Vec<Group>>, ServerError> {
     let sd = require_session(&session).await?;
-    let groups = state.notion.list_groups(&sd.email).await?;
+    let groups = state.store.list_groups(&sd.email).await?;
     Ok(Json(groups))
 }
 
@@ -36,7 +36,7 @@ pub(crate) async fn create(
     Json(input): Json<GroupInput>,
 ) -> Result<Json<Group>, ServerError> {
     let sd = require_session(&session).await?;
-    let group = state.notion.create_group(&input.name, &sd.email).await?;
+    let group = state.store.create_group(&input.name, &sd.email).await?;
     Ok(Json(group))
 }
 
@@ -48,7 +48,7 @@ pub(crate) async fn update(
 ) -> Result<Json<Group>, ServerError> {
     let sd = require_session(&session).await?;
     let group = state
-        .notion
+        .store
         .update_group(&id, &input.name, &sd.email)
         .await?;
     Ok(Json(group))
@@ -60,6 +60,6 @@ pub(crate) async fn delete(
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ServerError> {
     let sd = require_session(&session).await?;
-    state.notion.delete_group(&id, &sd.email).await?;
+    state.store.delete_group(&id, &sd.email).await?;
     Ok(Json(serde_json::json!({ "ok": true })))
 }

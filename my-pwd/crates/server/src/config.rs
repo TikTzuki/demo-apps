@@ -22,22 +22,21 @@ pub(crate) struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
+        // All external-service fields are optional. The desktop build uses
+        // local SQLite + master-password auth, so it needs none of them; the
+        // web build supplies Notion + Google credentials via the environment.
         Ok(Self {
-            notion_token: env("NOTION_TOKEN")?,
-            passwords_db_id: env("NOTION_PASSWORDS_DB_ID")?,
-            users_db_id: env("NOTION_USERS_DB_ID")?,
-            groups_db_id: env("NOTION_GROUPS_DB_ID")?,
-            google_client_id: env("GOOGLE_CLIENT_ID")?,
-            google_client_secret: env("GOOGLE_CLIENT_SECRET")?,
+            notion_token: env_or("NOTION_TOKEN", ""),
+            passwords_db_id: env_or("NOTION_PASSWORDS_DB_ID", ""),
+            users_db_id: env_or("NOTION_USERS_DB_ID", ""),
+            groups_db_id: env_or("NOTION_GROUPS_DB_ID", ""),
+            google_client_id: env_or("GOOGLE_CLIENT_ID", ""),
+            google_client_secret: env_or("GOOGLE_CLIENT_SECRET", ""),
             app_url: env_or("APP_URL", "http://localhost:3000"),
             session_secret: env_or("SESSION_SECRET", "change-me-in-production-please"),
             port: env_or("PORT", "3000").parse().context("invalid PORT")?,
         })
     }
-}
-
-fn env(key: &str) -> Result<String> {
-    std::env::var(key).with_context(|| format!("missing env var: {key}"))
 }
 
 fn env_or(key: &str, default: &str) -> String {

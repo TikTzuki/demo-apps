@@ -20,8 +20,9 @@ async function init() {
             show('view-login');
         } else if (!data.unlocked) {
             currentUser = data;
-            const path = window.location.pathname;
-            if (path === '/setup-master') {
+            // Decide setup-vs-unlock from the server flag, not the URL path
+            // (the desktop sign-in flow returns the user to "/").
+            if (!data.master_set) {
                 show('view-setup');
             } else {
                 document.getElementById('master-greeting').textContent =

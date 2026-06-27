@@ -1,0 +1,24 @@
+[package]
+name = "my-pwd-desktop"
+description = "my-pwd desktop app (Tauri shell embedding the Axum server)"
+publish = false
+version.workspace = true
+edition = "2021"
+rust-version = "1.85"
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "my-pwd-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+my-pwd-server = { path = "../server", features = ["sqlite"] }
+tauri = { version = "2", features = [] }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

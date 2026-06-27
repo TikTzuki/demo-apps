@@ -1,7 +1,7 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {useParams} from "next/navigation";
+import {Suspense, useEffect, useState} from "react";
+import {useSearchParams} from "next/navigation";
 import Link from "next/link";
 import {
     getCV,
@@ -15,10 +15,10 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ReviewSection from "@/components/ReviewSection";
 import MatchSection from "@/components/MatchSection";
 
-export default function CVDetailPage() {
-    const params = useParams();
-    const departmentId = Number(params.id);
-    const cvId = Number(params.cvId);
+function CVDetailPageInner() {
+    const searchParams = useSearchParams();
+    const departmentId = Number(searchParams.get("dept"));
+    const cvId = Number(searchParams.get("id"));
 
     const [cv, setCV] = useState<CV | null>(null);
     const [department, setDepartment] = useState<Department | null>(null);
@@ -86,7 +86,7 @@ export default function CVDetailPage() {
                     />
                 </svg>
                 <Link
-                    href={`/departments/${departmentId}`}
+                    href={`/department?id=${departmentId}`}
                     className="hover:text-indigo-600"
                 >
                     {department?.name || "Department"}
@@ -186,7 +186,7 @@ export default function CVDetailPage() {
                     </div>
                 </div>
                 <Link
-                    href={`/departments/${departmentId}`}
+                    href={`/department?id=${departmentId}`}
                     className="btn-secondary"
                 >
                     <svg
@@ -230,5 +230,19 @@ export default function CVDetailPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CVDetailPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex min-h-[60vh] items-center justify-center">
+                    <LoadingSpinner size="lg" label="Loading CV details..."/>
+                </div>
+            }
+        >
+            <CVDetailPageInner/>
+        </Suspense>
     );
 }

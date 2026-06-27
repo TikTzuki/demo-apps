@@ -71,7 +71,7 @@ export default function DashboardPage() {
                     {departments.map((dept) => (
                         <Link
                             key={dept.id}
-                            href={`/departments/${dept.id}`}
+                            href={`/department?id=${dept.id}`}
                             className="card group relative overflow-hidden p-6 transition-all hover:shadow-md hover:ring-2 hover:ring-indigo-500/20"
                         >
                             {/* Accent bar */}

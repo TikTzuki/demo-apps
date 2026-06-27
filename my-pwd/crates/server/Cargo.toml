@@ -30,5 +30,12 @@ tracing-subscriber = { workspace = true }
 dotenvy = { workspace = true }
 base64 = { workspace = true }
 
+[features]
+# Local SQLite storage backend (enables build_state_sqlite).
+sqlite = ["project-core/sqlite"]
+
+[dev-dependencies]
+reqwest = { workspace = true, features = ["cookies"] }
+
 [lints]
 workspace = true

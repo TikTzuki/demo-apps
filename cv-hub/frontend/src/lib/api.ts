@@ -1,4 +1,18 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+// In the desktop (Tauri) build the frontend is static and the backend runs as
+// a local sidecar on a dynamically chosen port. Tauri injects the base URL and
+// a per-launch admin key as window globals before any page script runs. On the
+// web (Docker) build neither global exists, so we fall back to same-origin.
+declare global {
+    interface Window {
+        __CVHUB_API_BASE__?: string;
+        __CVHUB_ADMIN_KEY__?: string;
+    }
+}
+
+const API_BASE =
+    (typeof window !== "undefined" && window.__CVHUB_API_BASE__) ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -7,6 +21,17 @@ export interface Department {
     name: string;
     description?: string;
     cv_count?: number;
+    sheet_id?: string | null;
+    last_synced_at?: string | null;
+}
+
+export interface SheetSyncResult {
+    department_id: number;
+    rows_pushed: number;
+    status_updates_applied: number;
+    conflicts_skipped: number;
+    invalid_status_values: number;
+    synced_at: string;
 }
 
 export interface CV {
@@ -63,7 +88,8 @@ export interface Match {
 
 export function getAdminKey(): string {
     if (typeof window === "undefined") return "";
-    return localStorage.getItem("admin_key") || "";
+    // Desktop: the injected key authenticates automatically (no login screen).
+    return localStorage.getItem("admin_key") || window.__CVHUB_ADMIN_KEY__ || "";
 }
 
 export function setAdminKey(key: string) {
@@ -115,6 +141,35 @@ export async function createDepartment(
         method: "POST",
         body: JSON.stringify(data),
     });
+}
+
+// ─── Google Sheets Sync ──────────────────────────────────────────────────────
+
+export async function setDepartmentSheet(
+    departmentId: number,
+    sheetUrl: string
+): Promise<Department> {
+    return request<Department>(`/api/departments/${departmentId}/sheet`, {
+        method: "PUT",
+        body: JSON.stringify({sheet_url: sheetUrl}),
+    });
+}
+
+export async function clearDepartmentSheet(
+    departmentId: number
+): Promise<Department> {
+    return request<Department>(`/api/departments/${departmentId}/sheet`, {
+        method: "DELETE",
+    });
+}
+
+export async function syncDepartmentSheet(
+    departmentId: number
+): Promise<SheetSyncResult> {
+    return request<SheetSyncResult>(
+        `/api/departments/${departmentId}/sheets/sync`,
+        {method: "POST"}
+    );
 }
 
 // ─── CVs ─────────────────────────────────────────────────────────────────────

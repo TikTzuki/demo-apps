@@ -22,6 +22,8 @@ class Department(Base):
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
+    sheet_id = Column(String(100), nullable=True)
+    last_synced_at = Column(DateTime, nullable=True)
 
     job_descriptions = relationship(
         "JobDescription", back_populates="department", cascade="all, delete-orphan"
@@ -70,6 +72,10 @@ class CV(Base):
     file_path = Column(String(500), nullable=False)
     extracted_text = Column(Text, nullable=True)
     status = Column(String(20), default="pending", nullable=False)  # pending, passed, failed
+    status_updated_at = Column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=True
+    )
+    last_synced_at = Column(DateTime, nullable=True)
 
     department = relationship("Department", back_populates="cvs")
     review = relationship(

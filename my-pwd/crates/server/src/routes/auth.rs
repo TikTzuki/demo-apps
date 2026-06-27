@@ -1,7 +1,11 @@
-//! Authentication routes: Google OAuth2 + master password.
+//! Authentication routes: Google OAuth2 (web) + master password.
+//!
+//! In local mode (desktop) there is no Google sign-in: the vault belongs to a
+//! single local user, unlocked by the master password alone.
 
 use axum::{
     extract::{Query, State},
+    http::StatusCode,
     response::{IntoResponse, Redirect, Response},
     Json,
 };
@@ -18,11 +22,19 @@ use crate::state::AppState;
 const B64: base64::engine::general_purpose::GeneralPurpose =
     base64::engine::general_purpose::STANDARD;
 
-// ── Google OAuth2 ────────────────────────────────────────
+// The single local user used in master-password-only (desktop) mode.
+const LOCAL_EMAIL: &str = "local";
+const LOCAL_NAME: &str = "Local Vault";
+const LOCAL_GOOGLE_ID: &str = "local";
+
+// ── Google OAuth2 (web only) ─────────────────────────────
 
 pub(crate) async fn google_login(State(state): State<AppState>) -> Response {
-    let (auth_url, _csrf) = state
-        .oauth
+    let Some(oauth) = state.oauth.as_ref() else {
+        return (StatusCode::NOT_FOUND, "google sign-in is disabled").into_response();
+    };
+
+    let (auth_url, _csrf) = oauth
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new(
             "https://www.googleapis.com/auth/userinfo.email".into(),
@@ -45,9 +57,13 @@ pub(crate) async fn google_callback(
     Query(params): Query<AuthCallback>,
     session: Session,
 ) -> Result<Response, crate::ServerError> {
-    let http_client = reqwest::Client::new();
-    let token = state
+    let oauth = state
         .oauth
+        .as_ref()
+        .ok_or_else(|| AppError::NotFound("google sign-in is disabled".into()))?;
+
+    let http_client = reqwest::Client::new();
+    let token = oauth
         .exchange_code(AuthorizationCode::new(params.code))
         .request_async(&http_client)
         .await
@@ -72,13 +88,12 @@ pub(crate) async fn google_callback(
 
     info!(email, "google login successful");
 
-    // Check if user exists, create if not.
-    let user = state.notion.find_user_by_google_id(google_id).await?;
+    let user = state.store.find_user_by_google_id(google_id).await?;
     let has_master = user.as_ref().is_some_and(|u| !u.master_hash.is_empty());
 
     if user.is_none() {
         state
-            .notion
+            .store
             .create_user(email, name, google_id, "", "")
             .await?;
     }
@@ -87,6 +102,7 @@ pub(crate) async fn google_callback(
         email: email.to_string(),
         name: name.to_string(),
         google_id: google_id.to_string(),
+        master_set: has_master,
         encryption_key: None,
     };
     session
@@ -108,44 +124,82 @@ pub(crate) struct MasterPasswordRequest {
     password: String,
 }
 
+/// Resolve the logged-in user identity for a master-password request. In local
+/// mode this is the fixed local user; otherwise it comes from the session.
+async fn require_user_identity(
+    state: &AppState,
+    session: &Session,
+) -> Result<SessionData, AppError> {
+    if state.local_auth {
+        return Ok(SessionData {
+            email: LOCAL_EMAIL.into(),
+            name: LOCAL_NAME.into(),
+            google_id: LOCAL_GOOGLE_ID.into(),
+            master_set: false,
+            encryption_key: None,
+        });
+    }
+    session
+        .get("user")
+        .await
+        .map_err(|e| AppError::Internal(e.to_string()))?
+        .ok_or_else(|| AppError::Unauthorized("not logged in".into()))
+}
+
 pub(crate) async fn setup_master_password(
     State(state): State<AppState>,
     session: Session,
     Json(body): Json<MasterPasswordRequest>,
 ) -> Result<Json<serde_json::Value>, crate::ServerError> {
-    let session_data: SessionData = session
-        .get("user")
-        .await
-        .map_err(|e| AppError::Internal(e.to_string()))?
-        .ok_or_else(|| AppError::Unauthorized("not logged in".into()))?;
+    let session_data = require_user_identity(&state, &session).await?;
 
     if body.password.len() < 8 {
         return Err(AppError::BadRequest(
             "master password must be at least 8 characters".into(),
-        ).into());
+        )
+        .into());
     }
+
+    // Find or (in local mode) create the user record.
+    let user = match state
+        .store
+        .find_user_by_google_id(&session_data.google_id)
+        .await?
+    {
+        Some(u) => u,
+        None if state.local_auth => {
+            state
+                .store
+                .create_user(
+                    &session_data.email,
+                    &session_data.name,
+                    &session_data.google_id,
+                    "",
+                    "",
+                )
+                .await?
+        }
+        None => return Err(AppError::NotFound("user not found".into()).into()),
+    };
 
     let master_hash = crypto::hash_master_password(&body.password)?;
     let key_salt = crypto::generate_salt();
-    let key_salt_bytes = B64.decode(&key_salt).map_err(|e| {
-        AppError::Internal(format!("salt decode: {e}"))
-    })?;
+    let key_salt_bytes = B64
+        .decode(&key_salt)
+        .map_err(|e| AppError::Internal(format!("salt decode: {e}")))?;
     let encryption_key = crypto::derive_key(&body.password, &key_salt_bytes)?;
 
-    let user = state
-        .notion
-        .find_user_by_google_id(&session_data.google_id)
-        .await?
-        .ok_or_else(|| AppError::NotFound("user not found".into()))?;
-
     state
-        .notion
+        .store
         .update_user_master(&user.id, &master_hash, &key_salt)
         .await?;
 
     let updated = SessionData {
+        email: user.email,
+        name: user.name,
+        google_id: user.google_id,
+        master_set: true,
         encryption_key: Some(B64.encode(encryption_key)),
-        ..session_data
     };
     session
         .insert("user", &updated)
@@ -160,14 +214,10 @@ pub(crate) async fn verify_master_password(
     session: Session,
     Json(body): Json<MasterPasswordRequest>,
 ) -> Result<Json<serde_json::Value>, crate::ServerError> {
-    let session_data: SessionData = session
-        .get("user")
-        .await
-        .map_err(|e| AppError::Internal(e.to_string()))?
-        .ok_or_else(|| AppError::Unauthorized("not logged in".into()))?;
+    let session_data = require_user_identity(&state, &session).await?;
 
     let user = state
-        .notion
+        .store
         .find_user_by_google_id(&session_data.google_id)
         .await?
         .ok_or_else(|| AppError::NotFound("user not found".into()))?;
@@ -176,14 +226,17 @@ pub(crate) async fn verify_master_password(
         return Err(AppError::Unauthorized("wrong master password".into()).into());
     }
 
-    let key_salt_bytes = B64.decode(&user.key_salt).map_err(|e| {
-        AppError::Internal(format!("salt decode: {e}"))
-    })?;
+    let key_salt_bytes = B64
+        .decode(&user.key_salt)
+        .map_err(|e| AppError::Internal(format!("salt decode: {e}")))?;
     let encryption_key = crypto::derive_key(&body.password, &key_salt_bytes)?;
 
     let updated = SessionData {
+        email: user.email,
+        name: user.name,
+        google_id: user.google_id,
+        master_set: true,
         encryption_key: Some(B64.encode(encryption_key)),
-        ..session_data
     };
     session
         .insert("user", &updated)
@@ -193,17 +246,39 @@ pub(crate) async fn verify_master_password(
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
-pub(crate) async fn me(session: Session) -> Result<Json<serde_json::Value>, crate::ServerError> {
+pub(crate) async fn me(
+    State(state): State<AppState>,
+    session: Session,
+) -> Result<Json<serde_json::Value>, crate::ServerError> {
     let session_data: Option<SessionData> = session
         .get("user")
         .await
         .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    if state.local_auth {
+        // Local mode: always "logged in" as the local user; setup-vs-unlock is
+        // driven by whether a master password exists in the local store.
+        let user = state.store.find_user_by_google_id(LOCAL_GOOGLE_ID).await?;
+        let master_set = user.is_some_and(|u| !u.master_hash.is_empty());
+        let unlocked = session_data
+            .as_ref()
+            .and_then(|d| d.encryption_key.as_ref())
+            .is_some();
+        return Ok(Json(serde_json::json!({
+            "logged_in": true,
+            "email": LOCAL_EMAIL,
+            "name": LOCAL_NAME,
+            "master_set": master_set,
+            "unlocked": unlocked,
+        })));
+    }
 
     match session_data {
         Some(data) => Ok(Json(serde_json::json!({
             "logged_in": true,
             "email": data.email,
             "name": data.name,
+            "master_set": data.master_set,
             "unlocked": data.encryption_key.is_some(),
         }))),
         None => Ok(Json(serde_json::json!({ "logged_in": false }))),

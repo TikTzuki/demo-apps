@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 from app.auth import require_admin_key
-from app.database import engine, SessionLocal, Base
+from app.database import engine, SessionLocal, Base, apply_inline_migrations
 from app.models import Department
-from app.routers import departments, jds, cvs, reviews
+from app.routers import departments, jds, cvs, reviews, sheets
 
 DEFAULT_DEPARTMENTS = ["Backend", "Frontend"]
 
@@ -27,8 +27,9 @@ def seed_departments(db: Session) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables and seed data
+    # Startup: create tables, apply column additions, seed data
     Base.metadata.create_all(bind=engine)
+    apply_inline_migrations()
     db = SessionLocal()
     try:
         seed_departments(db)
@@ -60,6 +61,7 @@ app.include_router(departments.router)
 app.include_router(jds.router)
 app.include_router(cvs.router)
 app.include_router(reviews.router)
+app.include_router(sheets.router)
 
 
 @app.exception_handler(Exception)
