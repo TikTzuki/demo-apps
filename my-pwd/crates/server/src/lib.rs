@@ -142,9 +142,16 @@ pub fn resolve_static_dir() -> String {
 /// CORS and session layers.
 pub fn build_router(state: AppState, static_dir: &str) -> Router {
     let session_store = MemoryStore::default();
+    // tower-sessions marks the cookie `Secure` by default, which means it is
+    // only stored/sent over HTTPS. The desktop app serves over an http loopback
+    // and runs in WKWebView, which (unlike curl/Chrome-on-localhost) strictly
+    // drops Secure cookies over http — so the session never returns and the
+    // vault can never unlock. Disable Secure for the desktop's loopback; keep it
+    // on for the web build (which is served over HTTPS).
     let session_layer = SessionManagerLayer::new(session_store)
         .with_same_site(SameSite::Lax)
-        .with_http_only(true);
+        .with_http_only(true)
+        .with_secure(!state.local_auth);
 
     Router::new()
         // Auth routes
