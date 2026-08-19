@@ -13,7 +13,7 @@ import type {AttendancePolicy} from "@/lib/attendance/compute";
  */
 export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
     const {
-        shiftStartTime, otStartTime, overnightStartTime, lateAfterTime,
+        shiftStartTime, otStartTime, overnightStartTime,
         standardShiftMinutes, breakMinutes, breakStartTime, otMinMinutes,
         dayCutoffHour, maxSessionHours,
     } = policy;
@@ -123,35 +123,9 @@ export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
                         nếu không hệ thống sẽ báo nhầm cho những ca dài hợp lệ.
                     </Section>
 
-                    <Section
-                        n="8"
-                        title={`Đi muộn là check-in sau ${lateAfterTime}`}
-                    >
-                        Chỉ áp dụng cho ca ngày, và chỉ hiển thị trên màn hình quản trị —
-                        <strong> không</strong> xuất ra file Excel và không ảnh hưởng tới giờ công.
-                    </Section>
                 </div>
             </Panel>
 
-            <Panel>
-                <PanelHead>Trước khi sửa các mốc phía trên</PanelHead>
-                <div className="p-5 flex flex-col gap-3 text-sm leading-relaxed text-zinc-700">
-                    <p>
-                        Số phút <strong>được tính lại mỗi lần đọc</strong>, không lưu sẵn trong cơ sở dữ liệu.
-                        Đổi một mốc ở đây sẽ thay đổi cả những tháng đã qua — kể cả tháng đã chốt lương.
-                    </p>
-                    <p>
-                        Đó là chủ ý: cấu hình sai đặt nhầm hôm nay, sửa lại là mọi ngày công tự đúng theo,
-                        không cần chạy lại gì. Nhưng cũng có nghĩa là <strong>đừng sửa các mốc này để xử lý
-                        một trường hợp riêng lẻ</strong> — hãy sửa phiên chấm công của người đó ở màn hình
-                        <strong> Chấm công</strong>.
-                    </p>
-                    <p className="text-zinc-500">
-                        Muốn thử nghiệm an toàn: đổi mốc, xem cột ví dụ bên phải đổi theo, rồi bấm
-                        <strong> Khôi phục mặc định</strong> nếu chưa muốn áp dụng.
-                    </p>
-                </div>
-            </Panel>
         </div>
     );
 }
