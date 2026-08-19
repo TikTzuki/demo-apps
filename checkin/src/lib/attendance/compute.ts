@@ -22,6 +22,7 @@ export type SessionKind = "DAY" | "OVERNIGHT";
 
 export type DayStatus =
     | "ABSENT"
+    | "AUTO_CLOSED"
     | "PRESENT"
     | "WORKING"
     | "LATE"
@@ -64,6 +65,10 @@ export interface SessionInput {
     kind: SessionKind;
     note?: string | null;
     isManual?: boolean;
+    /** Set when the system closed a forgotten session instead of a person. */
+    autoClosedAt?: Date | null;
+    /** Set once an admin has checked that auto-closed session. */
+    reviewedAt?: Date | null;
 }
 
 export interface SessionSummary extends SessionInput {
@@ -249,6 +254,10 @@ function deriveStatuses(input: {
             statuses.push("EARLY_LEAVE");
         }
     }
+
+    // An auto-closed session carries a time the system chose, not one anybody
+    // tapped — say so until an admin has looked at it.
+    if (summaries.some((s) => s.autoClosedAt && !s.reviewedAt)) statuses.push("AUTO_CLOSED");
 
     if (otMinutes > 0) statuses.push("OT");
     if (overnightOtMinutes > 0) statuses.push("OT_OVERNIGHT");

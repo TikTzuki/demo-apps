@@ -21,6 +21,7 @@ export interface MemberTotals {
     otMinutes: number;
     overnightOtMinutes: number;
     missingCheckoutDays: number;
+    autoClosedDays: number;
 }
 
 export function summarizeByMember(rows: readonly RangeRow[]): MemberTotals[] {
@@ -38,6 +39,7 @@ export function summarizeByMember(rows: readonly RangeRow[]): MemberTotals[] {
             otMinutes: 0,
             overnightOtMinutes: 0,
             missingCheckoutDays: 0,
+            autoClosedDays: 0,
         };
 
         const has = (status: string) => row.day.statuses.includes(status as never);

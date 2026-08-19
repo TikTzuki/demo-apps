@@ -2,10 +2,12 @@ import type {AttendanceBoard} from "@/lib/types";
 import {getPolicy} from "./settings";
 import {currentWorkDate, getTeamAttendance} from "./queries";
 import {workDateKey} from "./time";
+import {sweepThrottled} from "./sweep";
 
 /** The live kiosk board for the current business day. */
 export async function getBoard(now = new Date()): Promise<AttendanceBoard> {
     const policy = await getPolicy();
+    await sweepThrottled(policy, now);
     const workDate = currentWorkDate(policy, now);
     const teams = await getTeamAttendance(workDate, policy, now);
 

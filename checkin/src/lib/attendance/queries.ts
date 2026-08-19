@@ -13,6 +13,8 @@ type SessionRow = {
     kind: string;
     note: string | null;
     isManual: boolean;
+    autoClosedAt?: Date | null;
+    reviewedAt?: Date | null;
 };
 
 export function toSessionInput(row: SessionRow): SessionInput {
@@ -24,6 +26,8 @@ export function toSessionInput(row: SessionRow): SessionInput {
         kind: row.kind === "OVERNIGHT" ? "OVERNIGHT" : "DAY",
         note: row.note,
         isManual: row.isManual,
+        autoClosedAt: row.autoClosedAt ?? null,
+        reviewedAt: row.reviewedAt ?? null,
     };
 }
 

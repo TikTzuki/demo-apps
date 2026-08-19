@@ -13,6 +13,7 @@ const NAV = [
     {href: "/admin/settings", label: "Cấu hình", icon: Settings},
 ];
 
+/** Dark chrome over a light workspace — the two halves stay one product. */
 export function AdminShell({children}: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -24,43 +25,39 @@ export function AdminShell({children}: { children: React.ReactNode }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-100">
-            <header className="bg-white shadow-sm sticky top-0 z-40">
-                <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
-                    <Link href="/" className="font-bold text-gray-800 whitespace-nowrap">
-                        ⏰ Chấm công
-                    </Link>
+        <div className="min-h-screen bg-zinc-100 text-zinc-900">
+            <header className="sticky top-0 z-40 h-[58px] bg-ink px-5 sm:px-7 flex items-center gap-7">
+                <Link href="/" className="font-bold text-zinc-50 whitespace-nowrap">Chấm công</Link>
 
-                    <nav className="flex-1 flex items-center gap-1 overflow-x-auto">
-                        {NAV.map(({href, label, icon: Icon}) => {
-                            const isActive = href === "/admin" ? pathname === href : pathname.startsWith(href);
-                            return (
-                                <Link
-                                    key={href}
-                                    href={href}
-                                    className={cn(
-                                        "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors",
-                                        isActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100"
-                                    )}
-                                >
-                                    <Icon size={15}/>
-                                    {label}
-                                </Link>
-                            );
-                        })}
-                    </nav>
+                <nav className="flex-1 flex items-center gap-1 overflow-x-auto">
+                    {NAV.map(({href, label, icon: Icon}) => {
+                        const isActive = href === "/admin" ? pathname === href : pathname.startsWith(href);
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                className={cn(
+                                    "flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors",
+                                    isActive ? "bg-ink-line text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
+                                )}
+                            >
+                                <Icon size={15}/>
+                                {label}
+                            </Link>
+                        );
+                    })}
+                </nav>
 
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100"
-                    >
-                        <LogOut size={15}/>
-                        <span className="hidden sm:inline">Đăng xuất</span>
-                    </button>
-                </div>
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                >
+                    <LogOut size={15}/>
+                    <span className="hidden sm:inline">Đăng xuất</span>
+                </button>
             </header>
 
-            <main className="max-w-6xl mx-auto p-4">{children}</main>
+            <main className="max-w-[1440px] mx-auto p-5 sm:p-7">{children}</main>
         </div>
     );
 }

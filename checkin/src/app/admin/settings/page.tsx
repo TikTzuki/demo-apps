@@ -1,9 +1,11 @@
 "use client";
 
 import {useEffect, useState} from "react";
-import {Button} from "@/components/ui/button";
+import {Alert, Button, inputClass, Panel, PanelHead, Tag} from "@/components/admin/Ui";
+import {formatDuration} from "@/lib/attendance/time";
+import {PolicyGuide} from "@/components/admin/PolicyGuide";
 import {apiFetch} from "@/lib/api-client";
-import type {AttendancePolicy} from "@/lib/attendance/compute";
+import {DEFAULT_POLICY, type AttendancePolicy} from "@/lib/attendance/compute";
 
 type TimeField = "shiftStartTime" | "lateAfterTime" | "otStartTime" | "overnightStartTime" | "breakStartTime";
 type NumberField = "standardShiftMinutes" | "breakMinutes" | "otMinMinutes" | "maxSessionHours" | "dayCutoffHour";
@@ -37,6 +39,30 @@ export default function AdminSettingsPage() {
         });
     }, []);
 
+    // Resetting is deliberate and consequential — every past day recomputes.
+    const handleReset = async () => {
+        if (!window.confirm(
+            "Khôi phục toàn bộ cấu hình về mặc định?\n\n" +
+            "Giờ làm và OT của MỌI ngày công đã ghi nhận sẽ được tính lại theo mốc mặc định."
+        )) return;
+
+        setIsSaving(true);
+        setNotice(null);
+        const result = await apiFetch<AttendancePolicy>("/api/admin/settings", {
+            method: "PATCH",
+            json: DEFAULT_POLICY,
+        });
+        setIsSaving(false);
+
+        if (!result.success || !result.data) {
+            setError(result.error ?? "Không thể khôi phục");
+            return;
+        }
+        setError(null);
+        setNotice("Đã khôi phục cấu hình mặc định");
+        setPolicy(result.data);
+    };
+
     const handleSave = async () => {
         if (!policy) return;
         setIsSaving(true);
@@ -55,67 +81,108 @@ export default function AdminSettingsPage() {
     };
 
     if (!policy) {
-        return <p className="text-gray-500">{error ?? "Đang tải..."}</p>;
+        return <p className="text-zinc-500">{error ?? "Đang tải..."}</p>;
     }
 
+    // Worked examples recomputed from whatever is on screen, so the consequence
+    // of a threshold change is visible before it is saved.
+    const otBoundary = Number(policy.otStartTime.slice(0, 2)) * 60 + Number(policy.otStartTime.slice(3));
+    const shiftStart = Number(policy.shiftStartTime.slice(0, 2)) * 60 + Number(policy.shiftStartTime.slice(3));
+    const cap = policy.standardShiftMinutes;
+    const examples = [
+        {shift: `${policy.shiftStartTime} → ${policy.otStartTime}`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 0, overnight: 0},
+        {shift: `${policy.shiftStartTime} → 22:00`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 22 * 60 - otBoundary, overnight: 0},
+        {shift: `${policy.shiftStartTime} → 18:30, quay lại 22:00 → 02:00`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 30 + 240, overnight: 240},
+    ];
+
     return (
-        <div className="space-y-4 max-w-3xl">
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col lg:flex-row gap-5 items-start">
+                <div className="flex-1 flex flex-col gap-4 min-w-0">
             <div>
-                <h1 className="text-xl font-bold text-gray-800">Cấu hình chấm công</h1>
-                <p className="text-gray-500 text-sm">
+                <h1 className="text-2xl font-bold">Cấu hình chấm công</h1>
+                <p className="text-zinc-500 text-sm">
                     Áp dụng cho mọi tính toán giờ làm và OT, kể cả dữ liệu đã ghi nhận trước đó.
                 </p>
             </div>
 
-            {error && <div className="bg-danger/10 text-danger rounded-xl p-3 text-sm">{error}</div>}
-            {notice && <div className="bg-success/10 text-success rounded-xl p-3 text-sm">{notice}</div>}
+            {error && <Alert tone="danger">{error}</Alert>}
+            {notice && <Alert tone="success">{notice}</Alert>}
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm grid sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-zinc-200 rounded-xl p-5 grid sm:grid-cols-2 gap-4">
                 {TIME_FIELDS.map(({key, label, hint}) => (
                     <label key={key} className="block">
-                        <span className="text-sm font-medium text-gray-700">{label}</span>
+                        <span className="text-sm font-medium text-zinc-800">{label}</span>
                         <input
                             type="time"
                             value={policy[key]}
                             onChange={(e) => setPolicy({...policy, [key]: e.target.value})}
-                            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-primary focus:outline-none"
+                            className={`${inputClass} mt-1 w-full font-mono`}
                         />
-                        <span className="text-gray-400 text-xs">{hint}</span>
+                        <span className="text-xs text-zinc-400">{hint}</span>
                     </label>
                 ))}
 
                 {NUMBER_FIELDS.map(({key, label, hint, min, max}) => (
                     <label key={key} className="block">
-                        <span className="text-sm font-medium text-gray-700">{label}</span>
+                        <span className="text-sm font-medium text-zinc-800">{label}</span>
                         <input
                             type="number"
                             min={min}
                             max={max}
                             value={policy[key]}
                             onChange={(e) => setPolicy({...policy, [key]: Number(e.target.value)})}
-                            className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-primary focus:outline-none"
+                            className={`${inputClass} mt-1 w-full font-mono`}
                         />
-                        <span className="text-gray-400 text-xs">{hint}</span>
+                        <span className="text-xs text-zinc-400">{hint}</span>
                     </label>
                 ))}
 
                 <label className="block">
-                    <span className="text-sm font-medium text-gray-700">Chênh lệch múi giờ (phút)</span>
+                    <span className="text-sm font-medium text-zinc-800">Chênh lệch múi giờ (phút)</span>
                     <input
                         type="number"
                         min={-720}
                         max={840}
                         value={policy.timezoneOffsetMinutes}
                         onChange={(e) => setPolicy({...policy, timezoneOffsetMinutes: Number(e.target.value)})}
-                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-primary focus:outline-none"
+                        className={`${inputClass} mt-1 w-full font-mono`}
                     />
-                    <span className="text-gray-400 text-xs">420 = UTC+7 (giờ Việt Nam).</span>
+                    <span className="text-xs text-zinc-400">420 = UTC+7 (giờ Việt Nam).</span>
                 </label>
             </div>
 
-            <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-                {isSaving ? "Đang lưu..." : "Lưu cấu hình"}
-            </Button>
+            <div className="flex gap-2">
+                <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Đang lưu..." : "Lưu cấu hình"}
+                </Button>
+                <Button onClick={handleReset} disabled={isSaving}>Khôi phục mặc định</Button>
+            </div>
+                </div>
+
+                <aside className="w-[340px] shrink-0 flex flex-col gap-4">
+                    <Panel>
+                        <PanelHead>Với cấu hình này</PanelHead>
+                        <div className="p-4 flex flex-col gap-3">
+                            {examples.map((ex) => (
+                                <div key={ex.shift} className="flex flex-col gap-2 pb-3 border-b border-zinc-100 last:border-0 last:pb-0">
+                                    <span className="font-mono text-xs text-zinc-600">{ex.shift}</span>
+                                    <span className="flex flex-wrap gap-1.5">
+                                        <Tag>{formatDuration(ex.regular)} thường</Tag>
+                                        {ex.ot > 0
+                                            ? <Tag tone="ot">{formatDuration(ex.ot)} OT</Tag>
+                                            : <Tag>không OT</Tag>}
+                                        {ex.overnight > 0 && <Tag tone="overnight">{formatDuration(ex.overnight)} qua đêm</Tag>}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </Panel>
+
+                </aside>
+            </div>
+
+            <PolicyGuide policy={policy}/>
         </div>
     );
 }

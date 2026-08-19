@@ -2,7 +2,7 @@
 
 import {useRef, useState} from "react";
 import {FileSpreadsheet, Upload} from "lucide-react";
-import {Button} from "@/components/ui/button";
+import {Alert, Button} from "@/components/admin/Ui";
 import {cn} from "@/lib/utils";
 import type {RosterResult} from "@/lib/roster/import";
 
@@ -11,9 +11,9 @@ interface RosterImportProps {
 }
 
 const ACTION_STYLE = {
-    created: "text-success",
-    updated: "text-primary",
-    unchanged: "text-gray-400",
+    created: "text-emerald-700",
+    updated: "text-zinc-900",
+    unchanged: "text-zinc-400",
 } as const;
 
 const ACTION_LABEL = {created: "Thêm mới", updated: "Cập nhật", unchanged: "Không đổi"} as const;
@@ -76,17 +76,17 @@ export function RosterImport({onImported}: RosterImportProps) {
     };
 
     return (
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-1">
-                <FileSpreadsheet size={18} className="text-primary"/>
-                <h2 className="font-semibold text-gray-800">Nhập danh sách nhân viên</h2>
+                <FileSpreadsheet size={18} className="text-zinc-700"/>
+                <h2 className="font-semibold text-zinc-900">Nhập danh sách nhân viên</h2>
             </div>
-            <p className="text-gray-500 text-sm mb-3">
+            <p className="text-zinc-500 text-sm mb-3 leading-relaxed">
                 Tệp .xlsx, .xls hoặc .csv có các cột <strong>Mã NV</strong>, <strong>Họ tên</strong>,{" "}
                 <strong>Phòng ban</strong> và <strong>Email</strong> (không bắt buộc).
                 Khớp theo mã nhân viên: người đã có sẽ được cập nhật, người mới được thêm,
                 người không có trong tệp giữ nguyên.{" "}
-                <a href="/mau-danh-sach-nhan-vien.csv" download className="text-primary underline">Tải tệp mẫu</a>
+                <a href="/mau-danh-sach-nhan-vien.csv" download className="text-amber-700 underline">Tải tệp mẫu</a>
             </p>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -95,12 +95,11 @@ export function RosterImport({onImported}: RosterImportProps) {
                     type="file"
                     accept=".xlsx,.xls,.csv"
                     onChange={(e) => handleChoose(e.target.files?.[0] ?? null)}
-                    className="text-sm text-gray-600 file:mr-3 file:rounded-full file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
+                    className="text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border file:border-zinc-300 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-50"
                 />
                 {preview && preview.changes && (
                     <Button
                         variant="primary"
-                        size="sm"
                         onClick={() => file && send(file, false)}
                         disabled={isBusy || preview.created + preview.updated === 0}
                     >
@@ -110,16 +109,16 @@ export function RosterImport({onImported}: RosterImportProps) {
                 )}
             </div>
 
-            {isBusy && <p className="text-gray-400 text-sm mt-3">Đang xử lý...</p>}
-            {error && <div className="bg-danger/10 text-danger rounded-xl p-3 mt-3 text-sm">{error}</div>}
-            {notice && <div className="bg-success/10 text-success rounded-xl p-3 mt-3 text-sm">{notice}</div>}
+            {isBusy && <p className="text-zinc-400 text-sm mt-3">Đang xử lý...</p>}
+            {error && <div className="mt-3"><Alert tone="danger">{error}</Alert></div>}
+            {notice && <div className="mt-3"><Alert tone="success">{notice}</Alert></div>}
 
             {preview?.issues && preview.issues.length > 0 && (
-                <div className="bg-warning/10 rounded-xl p-3 mt-3">
-                    <p className="text-warning font-medium text-sm mb-1">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                    <p className="text-amber-800 font-semibold text-sm mb-1">
                         {preview.issues.length} dòng bị bỏ qua
                     </p>
-                    <ul className="text-warning/90 text-xs space-y-0.5 max-h-32 overflow-y-auto">
+                    <ul className="text-amber-800 text-xs space-y-1 max-h-32 overflow-y-auto">
                         {preview.issues.map((issue, i) => (
                             <li key={i}>
                                 {issue.rowNumber > 0 ? `Dòng ${issue.rowNumber}: ` : ""}{issue.message}
@@ -131,19 +130,19 @@ export function RosterImport({onImported}: RosterImportProps) {
 
             {preview?.changes && (
                 <div className="mt-3">
-                    <p className="text-gray-600 text-sm mb-2">
+                    <p className="text-zinc-600 text-sm mb-2">
                         Xem trước — chưa ghi gì:{" "}
-                        <strong className="text-success">{preview.created} thêm mới</strong>,{" "}
-                        <strong className="text-primary">{preview.updated} cập nhật</strong>,{" "}
+                        <strong className="text-emerald-700">{preview.created} thêm mới</strong>,{" "}
+                        <strong className="text-zinc-900">{preview.updated} cập nhật</strong>,{" "}
                         {preview.unchanged} không đổi
                         {preview.teamsCreated.length > 0 && (
                             <> · phòng ban mới: <strong>{preview.teamsCreated.join(", ")}</strong></>
                         )}
                     </p>
 
-                    <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-xl">
+                    <div className="max-h-64 overflow-y-auto border border-zinc-200 rounded-lg">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 text-gray-500 text-left sticky top-0">
+                            <thead className="bg-zinc-50 text-zinc-500 text-left sticky top-0">
                             <tr>
                                 <th className="px-3 py-1.5 font-medium">Dòng</th>
                                 <th className="px-3 py-1.5 font-medium">Mã NV</th>
@@ -152,9 +151,9 @@ export function RosterImport({onImported}: RosterImportProps) {
                                 <th className="px-3 py-1.5 font-medium">Thay đổi</th>
                             </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-zinc-100">
                             {preview.changes.map((change) => (
-                                <tr key={change.rowNumber} className={cn(change.action === "unchanged" && "text-gray-400")}>
+                                <tr key={change.rowNumber} className={cn(change.action === "unchanged" && "text-zinc-400")}>
                                     <td className="px-3 py-1.5">{change.rowNumber}</td>
                                     <td className="px-3 py-1.5">{change.employeeCode}</td>
                                     <td className="px-3 py-1.5">{change.name}</td>

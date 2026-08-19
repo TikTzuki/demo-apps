@@ -1,8 +1,8 @@
 "use client";
 
 import {useCallback, useEffect, useState} from "react";
-import {Plus, Trash2} from "lucide-react";
-import {Button} from "@/components/ui/button";
+import {Trash2, UserPlus} from "lucide-react";
+import {Alert, Button, EmptyState, inputClass, Panel} from "@/components/admin/Ui";
 import {RosterImport} from "@/components/admin/RosterImport";
 import {apiFetch} from "@/lib/api-client";
 import {cn} from "@/lib/utils";
@@ -71,59 +71,67 @@ export default function AdminMembersPage() {
     const setField = (teamId: string, field: keyof typeof EMPTY_MEMBER, value: string) =>
         setDraft((prev) => ({...prev, [teamId]: {...(prev[teamId] ?? EMPTY_MEMBER), [field]: value}}));
 
-    if (isLoading) return <p className="text-gray-500">Đang tải...</p>;
+    if (isLoading) return <Panel><div className="p-4"><div className="h-2.5 w-40 rounded-full bg-zinc-100 animate-pulse"/></div></Panel>;
 
     return (
         <div className="space-y-4">
-            <h1 className="text-xl font-bold text-gray-800">Nhân sự</h1>
+            <h1 className="text-2xl font-bold">Nhân sự</h1>
 
-            {error && <div className="bg-danger/10 text-danger rounded-xl p-3 text-sm">{error}</div>}
-            {notice && <div className="bg-success/10 text-success rounded-xl p-3 text-sm">{notice}</div>}
+            {error && <Alert tone="danger">{error}</Alert>}
+            {notice && <Alert tone="success">{notice}</Alert>}
 
             <RosterImport onImported={load}/>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-wrap gap-2 items-end">
+            <div className="bg-white border border-zinc-200 rounded-xl p-4 flex flex-wrap gap-2 items-end">
                 <label className="flex-1 min-w-[200px] text-sm">
-                    <span className="text-gray-500 block">Tên đội mới</span>
+                    <span className="text-zinc-500 block">Tên đội mới</span>
                     <input
                         value={newTeamName}
                         onChange={(e) => setNewTeamName(e.target.value)}
                         placeholder="VD: Phòng Kỹ thuật"
-                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-primary focus:outline-none"
+                        className={`${inputClass} mt-1 w-full`}
                     />
                 </label>
-                <Button variant="primary" size="sm" onClick={addTeam}>
-                    <Plus size={15} className="mr-1"/> Thêm đội
-                </Button>
+                <Button variant="primary" onClick={addTeam}>Thêm đội</Button>
             </div>
+
+            {teams.length === 0 && (
+                <Panel>
+                    <EmptyState
+                        icon={<UserPlus size={26}/>}
+                        title="Chưa có nhân viên nào"
+                        body="Nhập tệp danh sách từ HR để tạo phòng ban và nhân viên cùng lúc, hoặc thêm từng người một."
+                    />
+                </Panel>
+            )}
 
             {teams.map((team) => {
                 const values = draft[team.id] ?? EMPTY_MEMBER;
                 return (
-                    <div key={team.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div key={team.id} className="bg-white border border-zinc-200 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                                 <span className="w-4 h-4 rounded-full" style={{backgroundColor: team.color}}/>
-                                <h2 className="font-semibold text-gray-800">{team.name}</h2>
-                                <span className="text-gray-400 text-sm">({team.members.length})</span>
+                                <h2 className="font-semibold text-zinc-900">{team.name}</h2>
+                                <span className="text-zinc-400 text-sm">({team.members.length})</span>
                             </div>
                             <button
                                 onClick={() => removeTeam(team.id, team.name)}
-                                className="text-gray-400 hover:text-danger p-1"
+                                className="text-zinc-400 hover:text-red-700 p-1"
                                 title="Xoá đội"
                             >
                                 <Trash2 size={16}/>
                             </button>
                         </div>
 
-                        <div className="divide-y divide-gray-100 mb-3">
+                        <div className="divide-y divide-zinc-100 mb-3">
                             {team.members.map((member) => (
                                 <div key={member.id} className="flex items-center gap-3 py-2">
                                     <div className="flex-1 min-w-0">
-                                        <p className={cn("font-medium truncate", !member.isActive && "text-gray-400 line-through")}>
+                                        <p className={cn("font-medium truncate", !member.isActive && "text-zinc-400 line-through")}>
                                             {member.name}
                                         </p>
-                                        <p className="text-gray-400 text-xs truncate">
+                                        <p className="text-zinc-400 text-xs truncate">
                                             {[member.employeeCode, member.email].filter(Boolean).join(" · ") || "—"}
                                         </p>
                                     </div>
@@ -132,15 +140,15 @@ export default function AdminMembersPage() {
                                         className={cn(
                                             "rounded-full px-2.5 py-1 text-xs font-medium",
                                             member.isActive
-                                                ? "bg-success/10 text-success"
-                                                : "bg-gray-100 text-gray-500"
+                                                ? "bg-emerald-50 text-emerald-700"
+                                                : "bg-zinc-100 text-zinc-500"
                                         )}
                                     >
                                         {member.isActive ? "Đang làm" : "Đã nghỉ"}
                                     </button>
                                     <button
                                         onClick={() => removeMember(member.id, member.name)}
-                                        className="text-gray-300 hover:text-danger p-1"
+                                        className="text-zinc-300 hover:text-red-700 p-1"
                                     >
                                         <Trash2 size={15}/>
                                     </button>
@@ -148,29 +156,26 @@ export default function AdminMembersPage() {
                             ))}
                         </div>
 
-                        <div className="flex flex-wrap gap-2 items-end border-t border-gray-100 pt-3">
+                        <div className="flex flex-wrap gap-2 items-end border-t border-zinc-200 pt-3">
                             <input
                                 value={values.name}
                                 onChange={(e) => setField(team.id, "name", e.target.value)}
                                 placeholder="Họ tên *"
-                                className="flex-1 min-w-[160px] rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                                className={`${inputClass} flex-1 min-w-[160px]`}
                             />
                             <input
                                 value={values.employeeCode}
                                 onChange={(e) => setField(team.id, "employeeCode", e.target.value)}
                                 placeholder="Mã NV"
-                                className="w-28 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                                className={`${inputClass} w-28`}
                             />
                             <input
                                 value={values.email}
                                 onChange={(e) => setField(team.id, "email", e.target.value)}
                                 placeholder="Email"
-                                className="flex-1 min-w-[160px] rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                                className={`${inputClass} flex-1 min-w-[160px]`}
                             />
-                            <Button variant="ghost" size="sm" className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    onClick={() => addMember(team.id)}>
-                                <Plus size={15} className="mr-1"/> Thêm
-                            </Button>
+                            <Button onClick={() => addMember(team.id)}>Thêm</Button>
                         </div>
                     </div>
                 );

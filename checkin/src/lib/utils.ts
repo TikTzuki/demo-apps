@@ -5,6 +5,21 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+/**
+ * Fold Vietnamese text for searching: "Lộc" -> "loc", "Đạt" -> "dat".
+ *
+ * Without this, typing on a keyboard without tone marks finds nothing — which
+ * is how most people search a staff list.
+ */
+export function normalizeVi(value: string): string {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/gi, "d")
+        .toLowerCase()
+        .trim();
+}
+
 export function generateId(): string {
     return Math.random().toString(36).substring(2, 9);
 }

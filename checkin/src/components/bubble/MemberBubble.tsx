@@ -1,68 +1,76 @@
 "use client";
 
 import {cn} from "@/lib/utils";
-import {formatDuration} from "@/lib/attendance/time";
+import {formatDuration, localTimeLabel, type OffsetPolicy} from "@/lib/attendance/time";
 import type {MemberAttendance} from "@/lib/types";
-import {Check, LogIn, Moon} from "lucide-react";
+import {Moon} from "lucide-react";
 
-interface MemberBubbleProps {
+interface MemberTileProps {
     member: MemberAttendance;
-    teamColor: string;
-    index: number;
+    policy: OffsetPolicy;
     onClick: () => void;
     disabled?: boolean;
 }
 
 /**
- * Three states, because a day is no longer a single yes/no:
- * OUT (not here yet) · WORKING (on the clock) · DONE (checked out).
+ * One person on the kiosk.
  *
- * A DONE member stays tappable once it is late enough to start a night shift.
+ * Three states, each carried by border AND dot AND background — never colour
+ * alone, so it survives a glance from across the room and colour-blind eyes.
+ * 84px tall: hittable while walking past without stopping.
  */
-export function MemberBubble({member, teamColor, index, onClick, disabled}: MemberBubbleProps) {
-    const delayClass = `bubble-delay-${(index % 8) + 1}`;
+export function MemberBubble({member, policy, onClick, disabled}: MemberTileProps) {
     const isTappable = member.state !== "DONE" || member.canCheckInOvernight;
+
+    const sub =
+        member.state === "WORKING" && member.openedAt
+            ? `Vào ca ${localTimeLabel(new Date(member.openedAt), policy)}`
+            : member.state === "DONE" && member.lastCheckOutAt
+                ? `${localTimeLabel(new Date(member.lastCheckOutAt), policy)} · ${formatDuration(member.workedMinutes)}`
+                : "Chưa vào ca hôm nay";
 
     return (
         <button
             onClick={onClick}
             disabled={disabled || !isTappable}
             className={cn(
-                "relative flex flex-col items-center justify-center",
-                "w-24 h-24 sm:w-28 sm:h-28 rounded-full",
-                "shadow-lg transition-all animate-float",
-                delayClass,
-                member.state === "WORKING" && "ring-4 ring-white/70",
-                member.state === "DONE" && !member.canCheckInOvernight && "opacity-60 cursor-default",
-                isTappable && !disabled && "cursor-pointer hover:scale-110 active:scale-95",
-                disabled && "opacity-50 cursor-not-allowed"
+                "h-[84px] w-full rounded-xl border-2 px-4 flex items-center gap-3.5 text-left",
+                "transition-transform",
+                member.state === "WORKING" && "border-checkin bg-[#0f1c17]",
+                member.state === "OUT" && "border-ink-edge bg-ink-raised",
+                member.state === "DONE" && "border-ink-line bg-ink-sunken",
+                isTappable && !disabled && "active:scale-[0.98]",
+                !isTappable && "cursor-default",
+                disabled && "opacity-50"
             )}
-            style={{
-                backgroundColor: member.state === "DONE" ? "#94a3b8" : teamColor,
-            }}
         >
-            {member.isOvernightSession && (
-                <Moon className="absolute top-2 right-3 text-white/90" size={14}/>
-            )}
+            <span
+                className={cn(
+                    "w-2.5 h-2.5 rounded-full shrink-0",
+                    member.state === "WORKING" && "bg-checkin animate-pulse-dot",
+                    member.state === "OUT" && "bg-zinc-600",
+                    member.state === "DONE" && "bg-ink-edge"
+                )}
+            />
 
-            {member.state === "WORKING" && <LogIn className="text-white mb-1" size={18} strokeWidth={3}/>}
-            {member.state === "DONE" && <Check className="text-white mb-1" size={18} strokeWidth={3}/>}
-
-            <span className="text-white font-medium text-xs sm:text-sm text-center px-2 drop-shadow-md leading-tight">
-                {member.name.split("(")[0].trim()}
+            <span className="flex flex-col gap-1 min-w-0 flex-1">
+                <span className={cn("text-lg font-semibold truncate", member.state === "DONE" ? "text-zinc-500" : "text-zinc-50")}>
+                    {member.name.split("(")[0].trim()}
+                </span>
+                <span className="tabular text-sm text-zinc-500 truncate">{sub}</span>
             </span>
 
-            {member.state === "WORKING" && (
-                <span className="text-white/90 text-[10px] mt-0.5">Đang làm</span>
-            )}
-            {member.state === "DONE" && (
-                <span className="text-white/90 text-[10px] mt-0.5">
-                    {member.canCheckInOvernight ? "Vào ca đêm" : formatDuration(member.workedMinutes)}
+            {member.isOvernightSession && <Moon size={16} className="text-overnight shrink-0"/>}
+
+            {member.otMinutes > 0 && (
+                <span className="shrink-0 rounded-md bg-checkout px-2.5 py-1 text-xs font-bold text-ink">
+                    OT {formatDuration(member.otMinutes)}
                 </span>
             )}
-            {member.otMinutes > 0 && (
-                <span className="text-warning text-[10px] font-semibold drop-shadow">
-                    OT {formatDuration(member.otMinutes)}
+
+            {member.canCheckInOvernight && (
+                <span className="shrink-0 rounded-md border border-overnight px-2.5 py-1 text-xs font-semibold text-overnight">
+                    Vào ca đêm
                 </span>
             )}
         </button>

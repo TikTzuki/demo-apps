@@ -2,6 +2,7 @@ import {prisma} from "@/lib/prisma";
 import {classifyKind, type AttendancePolicy} from "./compute";
 import {findOpenSession, getMemberDay} from "./queries";
 import {MINUTE_MS, workDateOf} from "./time";
+import {sweepNow} from "./sweep";
 
 export interface ActionResult {
     success: boolean;
@@ -31,6 +32,10 @@ export async function checkIn(memberId: string, policy: AttendancePolicy, now: D
     if (!member || !member.isActive) {
         return {success: false, error: "Nhân viên không tồn tại"};
     }
+
+    // Close anything abandoned on an earlier day first: the person is here now,
+    // and yesterday's forgotten row must not stand between them and today.
+    await sweepNow(policy, now);
 
     const open = await findOpenSession(memberId);
     if (open) {

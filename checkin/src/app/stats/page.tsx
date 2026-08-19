@@ -1,104 +1,102 @@
 "use client";
 
 import Link from "next/link";
-import {ArrowLeft, RefreshCw} from "lucide-react";
-import {useState} from "react";
+import {ChevronLeft, Moon} from "lucide-react";
 import {useBoard} from "@/lib/hooks/useBoard";
-import {AttendanceCounter} from "@/components/attendance/AttendanceCounter";
-import {StatusBadges} from "@/components/attendance/StatusBadges";
+import {Clock} from "@/components/attendance/Clock";
 import {formatDuration, localTimeLabel} from "@/lib/attendance/time";
 import {cn} from "@/lib/utils";
-import type {MemberAttendance} from "@/lib/types";
 
-const STATE_DOT: Record<MemberAttendance["state"], string> = {
-    WORKING: "bg-success",
-    DONE: "bg-gray-400",
-    OUT: "bg-gray-200",
-};
-
+/** Always-on board: who is in the office right now, readable across the room. */
 export default function StatsPage() {
-    const {board, isLoading, refresh} = useBoard();
-    const [isRefreshing, setIsRefreshing] = useState(false);
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        await refresh();
-        setIsRefreshing(false);
-    };
+    const {board, isLoading, error} = useBoard();
 
     if (isLoading || !board) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white text-xl">Đang tải...</div>
+                <div className="h-8 w-40 rounded bg-ink-line animate-pulse"/>
             </div>
         );
     }
 
+    const present = board.teams
+        .map((team) => ({...team, here: team.members.filter((m) => m.state === "WORKING")}))
+        .filter((team) => team.here.length > 0);
+
     return (
-        <div className="min-h-screen p-4 pb-8">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/">
-                    <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <ArrowLeft className="text-white" size={20}/>
-                    </button>
+        <div className="min-h-screen p-6 sm:p-8 flex flex-col gap-5">
+
+            <header className="flex items-center gap-5">
+                <Link href="/" aria-label="Quay lại">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl border-2 border-ink-edge text-zinc-400">
+                        <ChevronLeft size={22}/>
+                    </span>
                 </Link>
-                <div className="flex-1 text-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-white">Bảng chấm công hôm nay</h1>
-                    <p className="text-white/70 text-sm">
-                        Ngày công {board.workDate} · OT từ {board.policy.otStartTime} · Ca đêm từ{" "}
-                        {board.policy.overnightStartTime}
+                <div className="flex-1 flex flex-col gap-1">
+                    <h1 className="text-xl sm:text-2xl font-bold">Ai đang ở văn phòng</h1>
+                    <p className="text-sm text-zinc-500">
+                        Ngày công {board.workDate} · cập nhật mỗi 5 giây
                     </p>
                 </div>
-                <button
-                    onClick={handleRefresh}
-                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-                >
-                    <RefreshCw className={cn("text-white", isRefreshing && "animate-spin")} size={18}/>
-                </button>
-            </div>
+                <div className="flex items-center gap-5">
+                    <span className="flex items-center gap-2.5 text-sm text-zinc-400">
+                        <span className="w-2.5 h-2.5 rounded-full bg-checkin"/> {board.totals.working} đang làm
+                    </span>
+                    <span className="flex items-center gap-2.5 text-sm text-zinc-400">
+                        <span className="w-2.5 h-2.5 rounded-full bg-checkout"/> {board.totals.onOt} đang OT
+                    </span>
+                    <Clock policy={board.policy} size="sm" className="hidden lg:block"/>
+                </div>
+            </header>
 
-            <AttendanceCounter totals={board.totals} className="mb-6"/>
+            <div className="h-px bg-ink-line"/>
 
-            <div className="space-y-4">
-                {board.teams.map((team) => (
-                    <div key={team.id} className="bg-white rounded-2xl p-4 shadow-lg">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 rounded-full" style={{backgroundColor: team.color}}/>
-                                <span className="font-semibold text-gray-800">{team.name}</span>
+            {error && (
+                <div className="rounded-lg border border-ink-edge bg-ink-raised px-4 py-3 text-sm text-zinc-400">
+                    {error} — đang hiện số liệu lần cập nhật gần nhất.
+                </div>
+            )}
+
+            {present.length === 0 ? (
+                <div className="flex-1 grid place-items-center">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <p className="text-xl font-semibold text-zinc-300">Chưa có ai vào ca hôm nay</p>
+                        <p className="text-sm text-zinc-600">Bảng sẽ tự cập nhật khi có người check-in.</p>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                    {present.map((team) => (
+                        <div key={team.id} className="flex flex-col gap-2.5">
+                            <div className="flex items-baseline justify-between border-b-2 border-ink-line pb-2">
+                                <span className="font-semibold text-zinc-300 truncate">{team.name}</span>
+                                <span className="tabular text-sm font-semibold text-checkin shrink-0 ml-2">
+                                    {team.here.length}/{team.members.length}
+                                </span>
                             </div>
-                            <span className="text-gray-500 text-sm">
-                                {team.workingCount} đang làm / {team.members.length}
-                            </span>
-                        </div>
-
-                        <div className="divide-y divide-gray-100">
-                            {team.members.map((member) => (
-                                <div key={member.id} className="flex items-center gap-3 py-2">
-                                    <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", STATE_DOT[member.state])}/>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-800 truncate">
-                                            {member.name.split("(")[0].trim()}
-                                        </p>
-                                        <p className="text-gray-500 text-xs">
-                                            {member.openedAt && `Vào ${localTimeLabel(new Date(member.openedAt), board.policy)}`}
-                                            {member.lastCheckOutAt && ` · Ra ${localTimeLabel(new Date(member.lastCheckOutAt), board.policy)}`}
-                                            {member.workedMinutes > 0 && ` · ${formatDuration(member.workedMinutes)}`}
-                                            {member.state === "OUT" && !member.lastCheckOutAt && "Chưa check-in"}
-                                        </p>
-                                        <StatusBadges statuses={member.statuses} className="mt-1"/>
-                                    </div>
-                                    {member.otMinutes > 0 && (
-                                        <span className="text-warning font-semibold text-sm flex-shrink-0">
-                                            +{formatDuration(member.otMinutes)}
-                                        </span>
-                                    )}
+                            {team.here.map((member) => (
+                                <div key={member.id} className="flex items-center gap-2.5 py-1">
+                                    <span className={cn(
+                                        "w-1.5 h-1.5 rounded-full shrink-0",
+                                        member.otMinutes > 0 ? "bg-checkout" : "bg-checkin"
+                                    )}/>
+                                    <span className="text-sm text-zinc-300 truncate flex-1">
+                                        {member.name.split("(")[0].trim()}
+                                    </span>
+                                    {member.isOvernightSession && <Moon size={12} className="text-overnight shrink-0"/>}
+                                    <span className="tabular text-xs text-zinc-600 shrink-0">
+                                        {member.otMinutes > 0
+                                            ? `+${formatDuration(member.otMinutes)}`
+                                            : member.openedAt
+                                                ? localTimeLabel(new Date(member.openedAt), board.policy)
+                                                : ""}
+                                    </span>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

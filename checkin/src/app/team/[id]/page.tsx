@@ -3,13 +3,14 @@
 import {useMemo, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import Link from "next/link";
-import {ArrowLeft} from "lucide-react";
+import {ChevronLeft} from "lucide-react";
 import {useBoard} from "@/lib/hooks/useBoard";
 import {MemberBubble} from "@/components/bubble/MemberBubble";
 import {ActionModal, type AttendanceAction} from "@/components/attendance/ActionModal";
+import {Clock} from "@/components/attendance/Clock";
 import type {MemberAttendance} from "@/lib/types";
 
-/** Tapping a member does whatever comes next for them, so there is one control, not three. */
+/** Tapping a person does whatever comes next for them — one control, not three. */
 function nextAction(member: MemberAttendance): AttendanceAction | null {
     if (member.state === "WORKING") return "CHECK_OUT";
     if (member.state === "OUT") return "CHECK_IN";
@@ -51,28 +52,29 @@ export default function TeamPage() {
                 return;
             }
 
-            const result = payload.data;
+            const r = payload.data;
             const query = new URLSearchParams({
-                name: result.memberName,
+                name: r.memberName,
                 team: team.name,
-                action: result.action,
-                kind: result.kind,
-                worked: String(result.workedMinutes),
-                ot: String(result.otMinutes),
-                overnight: String(result.overnightOtMinutes),
+                action: r.action,
+                kind: r.kind,
+                at: r.at,
+                worked: String(r.workedMinutes),
+                ot: String(r.otMinutes),
+                overnight: String(r.overnightOtMinutes),
             });
             router.push(`/success?${query.toString()}`);
         } catch {
-            setErrorMessage("Có lỗi xảy ra, vui lòng thử lại");
+            setErrorMessage("Mất kết nối tới máy chủ, vui lòng thử lại");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    if (isLoading) {
+    if (isLoading || !board) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white text-xl">Đang tải...</div>
+                <div className="h-8 w-40 rounded bg-ink-line animate-pulse"/>
             </div>
         );
     }
@@ -80,52 +82,55 @@ export default function TeamPage() {
     if (!team) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-                <div className="text-white text-xl">Đội không tồn tại</div>
-                <Link href="/" className="text-white/80 underline">Về trang chủ</Link>
+                <p className="text-xl text-zinc-300">Phòng ban không tồn tại</p>
+                <Link href="/" className="text-checkout underline">Về màn hình chính</Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-4 pb-8">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/">
-                    <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <ArrowLeft className="text-white" size={20}/>
-                    </button>
+        <div className="min-h-screen p-6 sm:p-8 flex flex-col gap-5">
+
+            <header className="flex items-center gap-5">
+                <Link href="/" aria-label="Quay lại">
+                    <span className="grid h-14 w-14 place-items-center rounded-xl border-2 border-ink-edge text-zinc-400 active:bg-ink-raised transition-colors">
+                        <ChevronLeft size={26}/>
+                    </span>
                 </Link>
-                <div className="flex-1 text-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-white">{team.name}</h1>
-                    <p className="text-white/80 text-sm">
-                        {team.workingCount} đang làm · {team.doneCount} đã về
-                        {team.otCount > 0 && ` · ${team.otCount} OT`}
+                <div className="flex-1 flex flex-col gap-1">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{team.name}</h1>
+                    <p className="text-sm text-zinc-500">
+                        {team.workingCount} đang làm · {team.doneCount} đã về · {team.members.length} người
                     </p>
                 </div>
-                <div className="w-10"/>
-            </div>
+                <Clock policy={board.policy} size="sm" className="hidden sm:block"/>
+            </header>
+
+            <div className="h-px bg-ink-line"/>
 
             {errorMessage && (
-                <div className="bg-danger/20 border border-danger/40 text-white rounded-xl p-3 mb-4 text-center text-sm">
+                <div className="rounded-lg border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-zinc-100">
                     {errorMessage}
                 </div>
             )}
 
-            <div className="flex flex-wrap justify-center gap-4">
-                {team.members.map((member, index) => (
+            <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {team.members.map((member) => (
                     <MemberBubble
                         key={member.id}
                         member={member}
-                        teamColor={team.color}
-                        index={index}
+                        policy={board.policy}
                         onClick={() => nextAction(member) && setSelectedId(member.id)}
                         disabled={isSubmitting}
                     />
                 ))}
             </div>
 
-            <p className="text-center text-white/60 text-sm mt-8">
-                Chọn tên của bạn để check-in hoặc check-out
-            </p>
+            <footer className="mt-auto pt-4 flex flex-wrap items-center gap-x-7 gap-y-2 text-sm text-zinc-500">
+                <Legend colour="bg-zinc-600" label="Chưa vào ca — chạm để check-in"/>
+                <Legend colour="bg-checkin" label="Đang làm — chạm để check-out"/>
+                <Legend colour="bg-ink-edge" label="Đã về"/>
+            </footer>
 
             <ActionModal
                 isOpen={selected !== null && action !== null}
@@ -134,9 +139,18 @@ export default function TeamPage() {
                 member={selected}
                 teamName={team.name}
                 action={action ?? "CHECK_IN"}
-                policy={board!.policy}
+                policy={board.policy}
                 isLoading={isSubmitting}
             />
         </div>
+    );
+}
+
+function Legend({colour, label}: { colour: string; label: string }) {
+    return (
+        <span className="flex items-center gap-2.5">
+            <span className={`w-2.5 h-2.5 rounded-full ${colour}`}/>
+            {label}
+        </span>
     );
 }

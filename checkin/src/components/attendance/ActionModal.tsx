@@ -1,9 +1,10 @@
 "use client";
 
-import {Modal} from "@/components/ui/modal";
-import {Button} from "@/components/ui/button";
+import {LogIn, LogOut, Moon} from "lucide-react";
 import {formatDuration, localTimeLabel, type OffsetPolicy} from "@/lib/attendance/time";
 import type {MemberAttendance} from "@/lib/types";
+import {cn} from "@/lib/utils";
+import {useEffect} from "react";
 
 export type AttendanceAction = "CHECK_IN" | "CHECK_OUT" | "CHECK_IN_OVERNIGHT";
 
@@ -14,70 +15,97 @@ interface ActionModalProps {
     member: MemberAttendance | null;
     teamName: string;
     action: AttendanceAction;
-    /** Office timezone, so displayed times match the minutes the server charged. */
     policy: OffsetPolicy;
     isLoading?: boolean;
 }
 
-const COPY: Record<AttendanceAction, { icon: string; title: string; cta: string; variant: "success" | "danger" }> = {
-    CHECK_IN: {icon: "🌅", title: "Bắt đầu ca làm việc?", cta: "Check-in", variant: "success"},
-    CHECK_OUT: {icon: "👋", title: "Kết thúc ca làm việc?", cta: "Check-out", variant: "danger"},
-    CHECK_IN_OVERNIGHT: {icon: "🌙", title: "Vào ca đêm (OT qua đêm)?", cta: "Vào ca đêm", variant: "success"},
+/** Each action owns a colour, so the confirm screen is never ambiguous. */
+const COPY: Record<AttendanceAction, {
+    title: string; cta: string; icon: typeof LogIn;
+    accent: string; accentBg: string; accentText: string;
+}> = {
+    CHECK_IN: {
+        title: "Bắt đầu ca làm việc?", cta: "Vào ca", icon: LogIn,
+        accent: "border-checkin", accentBg: "bg-checkin", accentText: "text-checkin",
+    },
+    CHECK_OUT: {
+        title: "Kết thúc ca làm việc?", cta: "Ra ca", icon: LogOut,
+        accent: "border-checkout", accentBg: "bg-checkout", accentText: "text-checkout",
+    },
+    CHECK_IN_OVERNIGHT: {
+        title: "Vào ca đêm?", cta: "Vào ca đêm", icon: Moon,
+        accent: "border-overnight", accentBg: "bg-overnight", accentText: "text-overnight",
+    },
 };
 
 export function ActionModal({
-                                isOpen,
-                                onClose,
-                                onConfirm,
-                                member,
-                                teamName,
-                                action,
-                                policy,
-                                isLoading,
+                                isOpen, onClose, onConfirm, member, teamName, action, policy, isLoading,
                             }: ActionModalProps) {
-    if (!member) return null;
+    useEffect(() => {
+        document.body.style.overflow = isOpen ? "hidden" : "unset";
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen]);
+
+    if (!isOpen || !member) return null;
 
     const copy = COPY[action];
+    const Icon = copy.icon;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
-            <div className="text-center">
-                <div className="text-5xl mb-4">{copy.icon}</div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">{copy.title}</h2>
+        <div className="fixed inset-0 z-50 grid place-items-center p-5">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}/>
 
-                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                    <p className="text-lg font-semibold text-gray-900">
-                        {member.name.split("(")[0].trim()}
-                    </p>
-                    <p className="text-gray-500">{teamName}</p>
+            <div className={cn(
+                "relative z-10 w-full max-w-md rounded-2xl border-2 bg-ink-raised p-7 animate-flash-in",
+                copy.accent
+            )}>
+                <div className="flex items-center gap-4 mb-6">
+                    <span className={cn("grid h-16 w-16 place-items-center rounded-xl shrink-0", copy.accentBg)}>
+                        <Icon size={30} className="text-ink" strokeWidth={2.5}/>
+                    </span>
+                    <div className="flex flex-col gap-1 min-w-0">
+                        <h2 className="text-xl font-bold">{copy.title}</h2>
+                        <p className="text-sm text-zinc-500 truncate">{teamName}</p>
+                    </div>
+                </div>
 
+                <div className="rounded-xl bg-ink px-5 py-4 mb-6">
+                    <p className="text-2xl font-bold truncate">{member.name.split("(")[0].trim()}</p>
                     {member.openedAt && (
-                        <p className="text-gray-600 text-sm mt-2">
-                            Vào ca lúc <strong>{localTimeLabel(new Date(member.openedAt), policy)}</strong>
+                        <p className="tabular text-sm text-zinc-500 mt-1.5">
+                            Vào ca lúc {localTimeLabel(new Date(member.openedAt), policy)}
                         </p>
                     )}
                     {member.workedMinutes > 0 && (
-                        <p className="text-gray-600 text-sm">
-                            Hôm nay đã làm <strong>{formatDuration(member.workedMinutes)}</strong>
-                            {member.otMinutes > 0 && <> · OT <strong>{formatDuration(member.otMinutes)}</strong></>}
+                        <p className="tabular text-sm text-zinc-500">
+                            Hôm nay đã làm {formatDuration(member.workedMinutes)}
+                            {member.otMinutes > 0 && <> · OT {formatDuration(member.otMinutes)}</>}
                         </p>
                     )}
                 </div>
 
                 <div className="flex gap-3">
-                    <Button
-                        variant="ghost"
-                        className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    <button
                         onClick={onClose}
                         disabled={isLoading}
+                        className="flex-1 h-14 rounded-xl border-2 border-ink-edge text-base font-semibold text-zinc-300 active:bg-ink transition-colors disabled:opacity-50"
                     >
                         Hủy
-                    </Button>
-                    <Button variant={copy.variant} className="flex-1" onClick={onConfirm} disabled={isLoading}>
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                        className={cn(
+                            "flex-[1.4] h-14 rounded-xl text-base font-bold text-ink active:scale-[0.98] transition-transform disabled:opacity-60",
+                            copy.accentBg
+                        )}
+                    >
                         {isLoading ? "Đang xử lý..." : copy.cta}
-                    </Button>
+                    </button>
                 </div>
             </div>
-        </Modal>
+        </div>
     );
 }

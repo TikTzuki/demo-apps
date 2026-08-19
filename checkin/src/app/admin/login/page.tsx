@@ -2,8 +2,8 @@
 
 import {Suspense, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
-import {Button} from "@/components/ui/button";
 import {apiFetch} from "@/lib/api-client";
+import {inputClass} from "@/components/admin/Ui";
 import type {AdminUserInfo} from "@/lib/types";
 
 function LoginForm() {
@@ -36,58 +36,71 @@ function LoginForm() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <form
-                onSubmit={handleSubmit}
-                className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl"
-            >
-                <div className="text-center mb-6">
-                    <div className="text-4xl mb-2">🔐</div>
-                    <h1 className="text-xl font-bold text-gray-800">Đăng nhập quản trị</h1>
-                    <p className="text-gray-500 text-sm">Hệ thống chấm công Newera.Inc</p>
+        <div className="min-h-screen flex flex-col lg:flex-row">
+            <div className="w-full lg:w-[560px] shrink-0 bg-ink-raised px-8 sm:px-14 py-14 flex flex-col justify-center gap-8">
+                <div className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold uppercase tracking-[0.09em] text-checkout">Newera.Inc</span>
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Quản trị chấm công</h1>
+                    <p className="text-base text-zinc-500 leading-relaxed">
+                        Chỉ dành cho quản trị viên. Nhân viên check-in tại máy đặt ở cửa, không cần đăng nhập.
+                    </p>
                 </div>
 
-                {error && (
-                    <div className="bg-danger/10 text-danger rounded-xl p-3 mb-4 text-sm text-center">
-                        {error}
-                    </div>
-                )}
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    {error && (
+                        <div className="rounded-lg border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-zinc-100">
+                            {error}
+                        </div>
+                    )}
 
-                <label className="block mb-3">
-                    <span className="text-sm text-gray-600">Email</span>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="username"
-                        className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:border-primary focus:outline-none"
-                    />
-                </label>
+                    <label className="flex flex-col gap-2">
+                        <span className="text-sm font-medium text-zinc-400">Email</span>
+                        <input
+                            type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                            required autoComplete="username"
+                            className={`${inputClass} !bg-ink !border-ink-edge !text-zinc-50 h-12 focus:!border-checkout`}
+                        />
+                    </label>
 
-                <label className="block mb-6">
-                    <span className="text-sm text-gray-600">Mật khẩu</span>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="current-password"
-                        className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:border-primary focus:outline-none"
-                    />
-                </label>
+                    <label className="flex flex-col gap-2">
+                        <span className="text-sm font-medium text-zinc-400">Mật khẩu</span>
+                        <input
+                            type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                            required autoComplete="current-password"
+                            className={`${inputClass} !bg-ink !border-ink-edge !text-zinc-50 h-12 focus:!border-checkout`}
+                        />
+                    </label>
 
-                <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
-                </Button>
-            </form>
+                    <button
+                        type="submit" disabled={isSubmitting}
+                        className="h-12 rounded-lg bg-checkout text-base font-bold text-ink disabled:opacity-60 transition-opacity"
+                    >
+                        {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                    </button>
+                </form>
+            </div>
+
+            <div className="flex-1 px-8 sm:px-14 py-14 flex flex-col justify-center gap-8">
+                <ul className="flex flex-col gap-3">
+                    {[
+                        "Ca chuẩn 08:00–18:00 · OT tính từ 18:00 · ca đêm từ 21:00",
+                        "Ngày công cắt lúc 05:00 — ca đêm thuộc về ngày bắt đầu",
+                        "Xuất Excel hai sheet: chi tiết từng phiên và tổng công theo người",
+                    ].map((fact) => (
+                        <li key={fact} className="flex items-center gap-3 text-zinc-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-ink-edge shrink-0"/>
+                            <span className="text-sm sm:text-base">{fact}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">Đang tải...</div>}>
+        <Suspense fallback={<div className="min-h-screen"/>}>
             <LoginForm/>
         </Suspense>
     );

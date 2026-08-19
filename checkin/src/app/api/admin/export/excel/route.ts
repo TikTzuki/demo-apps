@@ -3,6 +3,7 @@ import {z} from "zod";
 import {withAdmin} from "@/lib/auth/guard";
 import {getPolicy} from "@/lib/attendance/settings";
 import {currentWorkDate, getRange} from "@/lib/attendance/queries";
+import {sweepThrottled} from "@/lib/attendance/sweep";
 import {buildDailyDetailWorkbook, dailyDetailFilename} from "@/lib/excel/daily-detail";
 import {parseWorkDateKey, workDateKey} from "@/lib/attendance/time";
 
@@ -38,6 +39,7 @@ export const GET = withAdmin(async (_admin, request: Request) => {
             return NextResponse.json({success: false, error: "Ngày bắt đầu phải trước ngày kết thúc"}, {status: 400});
         }
 
+        await sweepThrottled(policy, now);
         const rows = await getRange(from, to, policy, now, parsed.data.teamId);
         const buffer = buildDailyDetailWorkbook(rows, policy, {from, to});
 

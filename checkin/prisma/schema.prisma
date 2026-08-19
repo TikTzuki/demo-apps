@@ -52,12 +52,17 @@ model AttendanceSession {
   kind       String    @default("DAY") @db.VarChar(20)
   note       String?   @db.VarChar(500)
   isManual   Boolean   @default(false) @map("is_manual")
+  /// Set when the system closed a forgotten session; null means a person tapped out.
+  autoClosedAt DateTime? @map("auto_closed_at")
+  /// Set when an admin has checked an auto-closed session. Null = still on the review queue.
+  reviewedAt   DateTime? @map("reviewed_at")
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   member     Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@index([memberId, workDate])
   @@index([workDate])
+  @@index([autoClosedAt])
   @@map("attendance_sessions")
 }
 

@@ -2,74 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    --foreground-rgb: 30, 41, 59;
-    --background-rgb: 248, 250, 252;
-}
-
+/*
+ * The kiosk is the default surface: a wall-mounted tablet read from across a
+ * room. Admin screens opt back into a light background themselves.
+ */
 body {
-    color: rgb(var(--foreground-rgb));
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0c0c0e;
+    color: #fafafa;
     min-height: 100vh;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 4px;
 }
 
-/* Bubble animations with different delays */
-.bubble-delay-1 {
-    animation-delay: 0s;
+/* Digits line up in timesheet columns. */
+.tabular {
+    font-variant-numeric: tabular-nums;
 }
 
-.bubble-delay-2 {
-    animation-delay: 0.2s;
-}
-
-.bubble-delay-3 {
-    animation-delay: 0.4s;
-}
-
-.bubble-delay-4 {
-    animation-delay: 0.6s;
-}
-
-.bubble-delay-5 {
-    animation-delay: 0.8s;
-}
-
-.bubble-delay-6 {
-    animation-delay: 1s;
-}
-
-.bubble-delay-7 {
-    animation-delay: 1.2s;
-}
-
-.bubble-delay-8 {
-    animation-delay: 1.4s;
-}
-
-/* Tap highlight removal for mobile */
 * {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe area for notch devices */
 .safe-top {
     padding-top: env(safe-area-inset-top);
 }
 
 .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Staggered entrance for tile grids, without a class per index. */
+.stagger > * {
+    animation: rise 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

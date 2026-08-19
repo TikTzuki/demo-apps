@@ -9,6 +9,8 @@ export interface SerializedSession {
     isOpen: boolean;
     isStale: boolean;
     isManual: boolean;
+    isAutoClosed: boolean;
+    needsReview: boolean;
     note: string | null;
     durationMinutes: number;
     regularMinutes: number;
@@ -52,6 +54,8 @@ export function serializeRangeRow(row: RangeRow): SerializedDayRow {
             isOpen: s.isOpen,
             isStale: s.isStale,
             isManual: s.isManual ?? false,
+            isAutoClosed: s.autoClosedAt != null,
+            needsReview: s.autoClosedAt != null && s.reviewedAt == null,
             note: s.note ?? null,
             durationMinutes: s.durationMinutes,
             regularMinutes: s.regularMinutes,

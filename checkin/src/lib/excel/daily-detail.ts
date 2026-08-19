@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<DayStatus, string> = {
     OT: "OT",
     OT_OVERNIGHT: "OT qua đêm",
     MISSING_CHECKOUT: "Thiếu check-out",
+    AUTO_CLOSED: "Tự đóng ca — chờ duyệt",
 };
 
 /** Not reported in the export: attendance is judged on hours, not on arrival time. */
@@ -44,9 +45,10 @@ const HEADERS = [
     "Trạng thái",
     "Ghi chú",
     "Sửa thủ công",
+    "Tự đóng ca",
 ];
 
-const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 18, 26, 30, 14];
+const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 18, 26, 30, 14, 20];
 
 const SUMMARY_HEADERS = [
     "Mã NV",
@@ -58,9 +60,10 @@ const SUMMARY_HEADERS = [
     "Giờ OT",
     "OT qua đêm",
     "Thiếu check-out (ngày)",
+    "Tự đóng ca (ngày)",
 ];
 
-const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 14, 22];
+const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 14, 22, 18];
 
 /**
  * Per-person totals for the same range as the detail sheet.
@@ -81,6 +84,7 @@ function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: D
         toHours(t.otMinutes),
         toHours(t.overnightOtMinutes),
         t.missingCheckoutDays,
+        t.autoClosedDays,
     ]);
 
     const sum = (pick: (t: (typeof totals)[number]) => number) => totals.reduce((n, t) => n + pick(t), 0);
@@ -93,6 +97,7 @@ function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: D
         toHours(sum((t) => t.otMinutes)),
         toHours(sum((t) => t.overnightOtMinutes)),
         sum((t) => t.missingCheckoutDays),
+        sum((t) => t.autoClosedDays),
     ]];
 
     const sheetData = [
@@ -149,6 +154,7 @@ export function buildDailyDetailWorkbook(
                 isFirst ? formatStatuses(row.day.statuses) : "",
                 session.note ?? "",
                 session.isManual ? "x" : "",
+                session.autoClosedAt ? (session.reviewedAt ? "đã duyệt" : "chờ duyệt") : "",
             ];
         })
     );

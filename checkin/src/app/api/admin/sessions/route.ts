@@ -4,6 +4,7 @@ import {prisma} from "@/lib/prisma";
 import {withAdmin} from "@/lib/auth/guard";
 import {getPolicy} from "@/lib/attendance/settings";
 import {currentWorkDate, getRange} from "@/lib/attendance/queries";
+import {sweepThrottled} from "@/lib/attendance/sweep";
 import {serializeRangeRow} from "@/lib/attendance/serialize";
 import {classifyKind} from "@/lib/attendance/compute";
 import {parseWorkDateKey, workDateKey, workDateOf} from "@/lib/attendance/time";
@@ -48,6 +49,7 @@ export const GET = withAdmin(async (_admin, request: Request) => {
             return NextResponse.json({success: false, error: "Ngày bắt đầu phải trước ngày kết thúc"}, {status: 400});
         }
 
+        await sweepThrottled(policy, now);
         const rows = await getRange(from, to, policy, now, parsed.data.teamId);
 
         return NextResponse.json({
