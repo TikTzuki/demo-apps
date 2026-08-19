@@ -1,11 +1,62 @@
-export interface Member {
+import type {DayStatus} from "@/lib/attendance/compute";
+
+export type {DayStatus, SessionKind} from "@/lib/attendance/compute";
+
+/** Where a member stands right now on the current business day. */
+export type MemberState = "OUT" | "WORKING" | "DONE";
+
+export interface MemberAttendance {
     id: string;
     name: string;
     email?: string;
-    checkedIn: boolean;
-    checkedInAt?: string;
+    employeeCode?: string;
+    teamId: string;
+    state: MemberState;
+    /** Check-in time of the session currently open, if any. */
+    openedAt?: string;
+    lastCheckOutAt?: string;
+    isOvernightSession: boolean;
+    workedMinutes: number;
+    regularMinutes: number;
+    otMinutes: number;
+    overnightOtMinutes: number;
+    statuses: DayStatus[];
+    /** Already went home, and it is late enough to start a night shift. */
+    canCheckInOvernight: boolean;
 }
 
+export interface TeamAttendance {
+    id: string;
+    name: string;
+    color: string;
+    members: MemberAttendance[];
+    workingCount: number;
+    doneCount: number;
+    otCount: number;
+}
+
+export interface AttendanceBoard {
+    workDate: string;
+    serverTime: string;
+    policy: {
+        timezoneOffsetMinutes: number;
+        otStartTime: string;
+        overnightStartTime: string;
+        lateAfterTime: string;
+        shiftStartTime: string;
+    };
+    teams: TeamAttendance[];
+    totals: {
+        totalMembers: number;
+        working: number;
+        done: number;
+        absent: number;
+        onOt: number;
+        onOvernight: number;
+    };
+}
+
+/** Team and member records for admin CRUD, without any attendance state. */
 export interface Team {
     id: string;
     name: string;
@@ -13,24 +64,20 @@ export interface Team {
     members: Member[];
 }
 
-export interface Database {
-    teams: Team[];
-}
-
-export interface CheckinStats {
-    totalMembers: number;
-    checkedIn: number;
-    percentage: number;
-    teamStats: TeamStats[];
-}
-
-export interface TeamStats {
+export interface Member {
+    id: string;
+    name: string;
+    email?: string;
+    employeeCode?: string;
+    isActive: boolean;
     teamId: string;
-    teamName: string;
-    color: string;
-    totalMembers: number;
-    checkedIn: number;
-    isComplete: boolean;
+}
+
+export interface AdminUserInfo {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
 }
 
 export interface ApiResponse<T> {

@@ -1,0 +1,117 @@
+import * as XLSX from "xlsx";
+import type {AttendancePolicy, DayStatus} from "@/lib/attendance/compute";
+import type {RangeRow} from "@/lib/attendance/queries";
+import {formatDuration, localDateTimeLabel, localTimeLabel, workDateLabel} from "@/lib/attendance/time";
+
+const STATUS_LABELS: Record<DayStatus, string> = {
+    ABSENT: "Vắng",
+    PRESENT: "Có mặt",
+    WORKING: "Đang làm",
+    LATE: "Đi muộn",
+    EARLY_LEAVE: "Về sớm",
+    OT: "OT",
+    OT_OVERNIGHT: "OT qua đêm",
+    MISSING_CHECKOUT: "Thiếu check-out",
+};
+
+export function formatStatuses(statuses: readonly DayStatus[]): string {
+    return statuses.map((s) => STATUS_LABELS[s]).join(", ");
+}
+
+const HEADERS = [
+    "Ngày công",
+    "Đội",
+    "Mã NV",
+    "Nhân viên",
+    "Phiên",
+    "Loại phiên",
+    "Giờ vào",
+    "Giờ ra",
+    "Số phút phiên",
+    "Giờ trước OT (phiên)",
+    "Giờ OT (phiên)",
+    "Tổng giờ làm (ngày)",
+    "Giờ thường (ngày)",
+    "Giờ OT (ngày)",
+    "OT qua đêm (ngày)",
+    "Trạng thái",
+    "Ghi chú",
+    "Sửa thủ công",
+];
+
+const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 18, 26, 30, 14];
+
+/**
+ * Raw-session export.
+ *
+ * One row per check-in/check-out pair, so both legs of an overnight shift appear
+ * separately while sharing a business day — which is what makes a dispute
+ * auditable. Day-level totals are written only on a member-day's first row so
+ * that summing a column never double-counts.
+ *
+ * Per-session minutes are uncapped: "Giờ trước OT (phiên)" is the raw time that
+ * session spent before the OT boundary, whereas "Giờ thường (ngày)" applies the
+ * standard-shift cap. The day column is the one payroll should sum.
+ */
+export function buildDailyDetailWorkbook(
+    rows: readonly RangeRow[],
+    policy: AttendancePolicy,
+    range: { from: Date; to: Date }
+): Buffer {
+    const dataRows = rows.flatMap((row) =>
+        row.day.sessions.map((session, index) => {
+            const isFirst = index === 0;
+            return [
+                workDateLabel(row.workDate),
+                row.teamName,
+                row.employeeCode ?? "",
+                row.memberName,
+                index + 1,
+                session.kind === "OVERNIGHT" ? "Qua đêm" : "Ban ngày",
+                localDateTimeLabel(session.checkInAt, policy),
+                session.checkOutAt ? localDateTimeLabel(session.checkOutAt, policy) : "",
+                session.durationMinutes,
+                formatDuration(session.regularMinutes),
+                formatDuration(session.otMinutes),
+                isFirst ? formatDuration(row.day.workedMinutes) : "",
+                isFirst ? formatDuration(row.day.regularMinutes) : "",
+                isFirst ? formatDuration(row.day.otMinutes) : "",
+                isFirst ? formatDuration(row.day.overnightOtMinutes) : "",
+                isFirst ? formatStatuses(row.day.statuses) : "",
+                session.note ?? "",
+                session.isManual ? "x" : "",
+            ];
+        })
+    );
+
+    const sheetData = [
+        [`Bảng chấm công chi tiết: ${workDateLabel(range.from)} — ${workDateLabel(range.to)}`],
+        [
+            `Ca chuẩn ${policy.shiftStartTime}–${policy.otStartTime} (${formatDuration(policy.standardShiftMinutes)})`,
+            `OT tính từ ${policy.otStartTime}`,
+            `Ca đêm từ ${policy.overnightStartTime}`,
+            `Nghỉ trưa ${policy.breakMinutes} phút`,
+            `Xuất lúc ${localDateTimeLabel(new Date(), policy)}`,
+        ],
+        [],
+        HEADERS,
+        ...dataRows,
+    ];
+
+    const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+    sheet["!cols"] = COLUMN_WIDTHS.map((wch) => ({wch}));
+    sheet["!freeze"] = {xSplit: "0", ySplit: "4"};
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Chi tiết chấm công");
+
+    return XLSX.write(workbook, {type: "buffer", bookType: "xlsx"});
+}
+
+export function dailyDetailFilename(from: Date, to: Date): string {
+    const key = (d: Date) => d.toISOString().slice(0, 10);
+    return `cham-cong-${key(from)}-den-${key(to)}.xlsx`;
+}
+
+/** Local time label re-exported so the admin table and the sheet stay in sync. */
+export {localTimeLabel};

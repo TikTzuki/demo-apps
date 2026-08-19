@@ -1,73 +1,71 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import {useMemo, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
-import {Member, Team} from "@/lib/types";
-import {MemberBubble} from "@/components/bubble/MemberBubble";
-import {ConfirmModal} from "@/components/checkin/ConfirmModal";
-import {ArrowLeft} from "lucide-react";
 import Link from "next/link";
+import {ArrowLeft} from "lucide-react";
+import {useBoard} from "@/lib/hooks/useBoard";
+import {MemberBubble} from "@/components/bubble/MemberBubble";
+import {ActionModal, type AttendanceAction} from "@/components/attendance/ActionModal";
+import type {MemberAttendance} from "@/lib/types";
+
+/** Tapping a member does whatever comes next for them, so there is one control, not three. */
+function nextAction(member: MemberAttendance): AttendanceAction | null {
+    if (member.state === "WORKING") return "CHECK_OUT";
+    if (member.state === "OUT") return "CHECK_IN";
+    return member.canCheckInOvernight ? "CHECK_IN_OVERNIGHT" : null;
+}
 
 export default function TeamPage() {
     const params = useParams();
     const router = useRouter();
     const teamId = params.id as string;
 
-    const [team, setTeam] = useState<Team | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-    const [isCheckinLoading, setIsCheckinLoading] = useState(false);
+    const {board, isLoading, refresh} = useBoard();
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const fetchTeam = async () => {
+    const team = useMemo(() => board?.teams.find((t) => t.id === teamId) ?? null, [board, teamId]);
+    const selected = team?.members.find((m) => m.id === selectedId) ?? null;
+    const action = selected ? nextAction(selected) : null;
+
+    const handleConfirm = async () => {
+        if (!selected || !action || !team) return;
+
+        setIsSubmitting(true);
+        setErrorMessage(null);
         try {
-            const res = await fetch(`/api/teams/${teamId}`);
-            const data = await res.json();
-
-            if (data.success) {
-                setTeam(data.data);
-            }
-        } catch (error) {
-            console.error("Error fetching team:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTeam();
-    }, [teamId]);
-
-    const handleCheckin = async () => {
-        if (!selectedMember || !team) return;
-
-        setIsCheckinLoading(true);
-        try {
-            const res = await fetch("/api/checkin", {
+            const endpoint = action === "CHECK_OUT" ? "checkout" : "checkin";
+            const response = await fetch(`/api/attendance/${endpoint}`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    teamId: team.id,
-                    memberId: selectedMember.id,
-                }),
+                body: JSON.stringify({memberId: selected.id}),
             });
+            const payload = await response.json();
 
-            const data = await res.json();
-
-            if (data.success) {
-                // Navigate to success page
-                router.push(
-                    `/success?name=${encodeURIComponent(selectedMember.name)}&team=${encodeURIComponent(team.name)}`
-                );
-            } else {
-                alert(data.error || "Không thể check-in");
-                setSelectedMember(null);
-                fetchTeam();
+            if (!payload.success) {
+                setErrorMessage(payload.error ?? "Không thể thực hiện");
+                setSelectedId(null);
+                await refresh();
+                return;
             }
-        } catch (error) {
-            console.error("Error checking in:", error);
-            alert("Có lỗi xảy ra, vui lòng thử lại");
+
+            const result = payload.data;
+            const query = new URLSearchParams({
+                name: result.memberName,
+                team: team.name,
+                action: result.action,
+                kind: result.kind,
+                worked: String(result.workedMinutes),
+                ot: String(result.otMinutes),
+                overnight: String(result.overnightOtMinutes),
+            });
+            router.push(`/success?${query.toString()}`);
+        } catch {
+            setErrorMessage("Có lỗi xảy ra, vui lòng thử lại");
         } finally {
-            setIsCheckinLoading(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -81,37 +79,37 @@ export default function TeamPage() {
 
     if (!team) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white text-xl">Team không tồn tại</div>
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+                <div className="text-white text-xl">Đội không tồn tại</div>
+                <Link href="/" className="text-white/80 underline">Về trang chủ</Link>
             </div>
         );
     }
 
-    const checkedIn = team.members.filter((m) => m.checkedIn).length;
-
     return (
         <div className="min-h-screen p-4 pb-8">
-            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <Link href="/">
-                    <button
-                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                         <ArrowLeft className="text-white" size={20}/>
                     </button>
                 </Link>
                 <div className="flex-1 text-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-white">
-                        {team.name}
-                    </h1>
+                    <h1 className="text-xl sm:text-2xl font-bold text-white">{team.name}</h1>
                     <p className="text-white/80 text-sm">
-                        {checkedIn}/{team.members.length} đã check-in
+                        {team.workingCount} đang làm · {team.doneCount} đã về
+                        {team.otCount > 0 && ` · ${team.otCount} OT`}
                     </p>
                 </div>
                 <div className="w-10"/>
-                {/* Spacer for centering */}
             </div>
 
-            {/* Member Bubbles */}
+            {errorMessage && (
+                <div className="bg-danger/20 border border-danger/40 text-white rounded-xl p-3 mb-4 text-center text-sm">
+                    {errorMessage}
+                </div>
+            )}
+
             <div className="flex flex-wrap justify-center gap-4">
                 {team.members.map((member, index) => (
                     <MemberBubble
@@ -119,25 +117,25 @@ export default function TeamPage() {
                         member={member}
                         teamColor={team.color}
                         index={index}
-                        onClick={() => !member.checkedIn && setSelectedMember(member)}
-                        disabled={isCheckinLoading}
+                        onClick={() => nextAction(member) && setSelectedId(member.id)}
+                        disabled={isSubmitting}
                     />
                 ))}
             </div>
 
-            {/* Footer hint */}
             <p className="text-center text-white/60 text-sm mt-8">
-                Chọn tên của bạn để check-in
+                Chọn tên của bạn để check-in hoặc check-out
             </p>
 
-            {/* Confirm Modal */}
-            <ConfirmModal
-                isOpen={!!selectedMember}
-                onClose={() => setSelectedMember(null)}
-                onConfirm={handleCheckin}
-                member={selectedMember}
-                team={team}
-                isLoading={isCheckinLoading}
+            <ActionModal
+                isOpen={selected !== null && action !== null}
+                onClose={() => setSelectedId(null)}
+                onConfirm={handleConfirm}
+                member={selected}
+                teamName={team.name}
+                action={action ?? "CHECK_IN"}
+                policy={board!.policy}
+                isLoading={isSubmitting}
             />
         </div>
     );

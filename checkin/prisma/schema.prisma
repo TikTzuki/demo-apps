@@ -17,37 +17,64 @@ model Team {
 }
 
 model Member {
-  id          String    @id @default(uuid())
-  name        String    @db.VarChar(200)
-  email       String?   @db.VarChar(200)
-  checkedIn   Boolean   @default(false) @map("checked_in")
-  checkedInAt DateTime? @map("checked_in_at")
-  teamId      String    @map("team_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id           String              @id @default(uuid())
+  name         String              @db.VarChar(200)
+  email        String?             @db.VarChar(200)
+  employeeCode String?             @unique @map("employee_code") @db.VarChar(50)
+  isActive     Boolean             @default(true) @map("is_active")
+  teamId       String              @map("team_id")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  team         Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sessions     AttendanceSession[]
 
   @@map("members")
 }
 
-model LixiSession {
-  id        String     @id @default(uuid())
-  total     Int
-  amounts   Int[]
-  createdAt DateTime   @default(now()) @map("created_at")
-  spins     LixiSpin[]
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(200)
+  name         String   @db.VarChar(200)
+  passwordHash String   @map("password_hash")
+  role         String   @default("ADMIN") @db.VarChar(20)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@map("lixi_sessions")
+  @@map("admin_users")
 }
 
-model LixiSpin {
-  id         String       @id @default(uuid())
-  sessionId  String       @map("session_id")
-  playerName String       @map("player_name") @db.VarChar(200)
-  amount     Int
-  spinOrder  Int          @map("spin_order")
-  createdAt  DateTime     @default(now()) @map("created_at")
-  session    LixiSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+model AttendanceSession {
+  id         String    @id @default(uuid())
+  memberId   String    @map("member_id")
+  workDate   DateTime  @map("work_date") @db.Date
+  checkInAt  DateTime  @map("check_in_at")
+  checkOutAt DateTime? @map("check_out_at")
+  kind       String    @default("DAY") @db.VarChar(20)
+  note       String?   @db.VarChar(500)
+  isManual   Boolean   @default(false) @map("is_manual")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  member     Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@unique([sessionId, playerName])
-  @@map("lixi_spins")
+  @@index([memberId, workDate])
+  @@index([workDate])
+  @@map("attendance_sessions")
+}
+
+model AttendanceSetting {
+  id                    String   @id @default("default")
+  timezoneOffsetMinutes Int      @default(420) @map("timezone_offset_minutes")
+  dayCutoffHour         Int      @default(5) @map("day_cutoff_hour")
+  shiftStartTime        String   @default("08:00") @map("shift_start_time") @db.VarChar(5)
+  lateAfterTime         String   @default("10:00") @map("late_after_time") @db.VarChar(5)
+  otStartTime           String   @default("18:00") @map("ot_start_time") @db.VarChar(5)
+  overnightStartTime    String   @default("21:00") @map("overnight_start_time") @db.VarChar(5)
+  standardShiftMinutes  Int      @default(480) @map("standard_shift_minutes")
+  breakMinutes          Int      @default(90) @map("break_minutes")
+  breakStartTime        String   @default("12:00") @map("break_start_time") @db.VarChar(5)
+  otMinMinutes          Int      @default(30) @map("ot_min_minutes")
+  maxSessionHours       Int      @default(16) @map("max_session_hours")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("attendance_settings")
 }

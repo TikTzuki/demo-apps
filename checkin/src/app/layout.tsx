@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
 
-    title: "Hackathon Check-in | Newera.Inc",
-    description: "Check-in cho sự kiện Hackathon 2026",
+    title: "Chấm công | Newera.Inc",
+    description: "Hệ thống chấm công và quản lý giờ OT của Newera.Inc",
     icons: {
         icon: "/favicon.ico",
     }

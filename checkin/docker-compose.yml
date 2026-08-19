@@ -1,4 +1,22 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: checkin-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: checkin
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d checkin" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   app:
     build:
       context: .
@@ -9,8 +27,17 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/checkin?schema=public
+      # Seeded on every boot by entrypoint.sh; the password only applies the
+      # first time the account is created.
+      # Required. The container refuses to start without them (prisma/seed-admin.ts
+      # and src/lib/auth/session.ts both fail loudly rather than using a default).
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_NAME=${ADMIN_NAME:-Quản trị viên}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - AUTH_SECRET=${AUTH_SECRET:-}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

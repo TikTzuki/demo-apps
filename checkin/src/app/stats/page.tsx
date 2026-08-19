@@ -1,72 +1,32 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {CheckinStats} from "@/lib/types";
-import {CheckinCounter} from "@/components/checkin/CheckinCounter";
-import {TeamProgressCard} from "@/components/stats/TeamProgressCard";
-import {ArrowLeft, Download, RefreshCw} from "lucide-react";
 import Link from "next/link";
+import {ArrowLeft, RefreshCw} from "lucide-react";
+import {useState} from "react";
+import {useBoard} from "@/lib/hooks/useBoard";
+import {AttendanceCounter} from "@/components/attendance/AttendanceCounter";
+import {StatusBadges} from "@/components/attendance/StatusBadges";
+import {formatDuration, localTimeLabel} from "@/lib/attendance/time";
+import {cn} from "@/lib/utils";
+import type {MemberAttendance} from "@/lib/types";
+
+const STATE_DOT: Record<MemberAttendance["state"], string> = {
+    WORKING: "bg-success",
+    DONE: "bg-gray-400",
+    OUT: "bg-gray-200",
+};
 
 export default function StatsPage() {
-    const [stats, setStats] = useState<CheckinStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const {board, isLoading, refresh} = useBoard();
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
 
-    const fetchStats = async (showRefreshing = false) => {
-        if (showRefreshing) setIsRefreshing(true);
-        try {
-            const res = await fetch("/api/stats");
-            const data = await res.json();
-
-            if (data.success) {
-                setStats(data.data);
-            }
-        } catch (error) {
-            console.error("Error fetching stats:", error);
-        } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
-        }
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await refresh();
+        setIsRefreshing(false);
     };
 
-    useEffect(() => {
-        fetchStats();
-
-        // Auto refresh every 5 seconds
-        const interval = setInterval(() => fetchStats(false), 5000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const handleExportExcel = async () => {
-        setIsExporting(true);
-        try {
-            const response = await fetch("/api/export/excel");
-            if (!response.ok) {
-                throw new Error("Export failed");
-            }
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            const contentDisposition = response.headers.get("Content-Disposition");
-            const filename = contentDisposition
-                ?.split("filename=")[1]
-                ?.replace(/"/g, "") || "checkin-report.xlsx";
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        } catch (error) {
-            console.error("Error exporting Excel:", error);
-            alert("Lỗi khi xuất file Excel");
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
-    if (isLoading) {
+    if (isLoading || !board) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-white text-xl">Đang tải...</div>
@@ -76,65 +36,69 @@ export default function StatsPage() {
 
     return (
         <div className="min-h-screen p-4 pb-8">
-            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <Link href="/">
-                    <button
-                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                         <ArrowLeft className="text-white" size={20}/>
                     </button>
                 </Link>
                 <div className="flex-1 text-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-white">
-                        📊 Thống kê Check-in
-                    </h1>
+                    <h1 className="text-xl sm:text-2xl font-bold text-white">Bảng chấm công hôm nay</h1>
+                    <p className="text-white/70 text-sm">
+                        Ngày công {board.workDate} · OT từ {board.policy.otStartTime} · Ca đêm từ{" "}
+                        {board.policy.overnightStartTime}
+                    </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleExportExcel}
-                        className="w-10 h-10 rounded-full bg-green-500/80 flex items-center justify-center hover:bg-green-500 transition-colors"
-                        disabled={isExporting}
-                        title="Xuất Excel"
-                    >
-                        <Download
-                            className={`text-white ${isExporting ? "animate-pulse" : ""}`}
-                            size={20}
-                        />
-                    </button>
-                    <button
-                        onClick={() => fetchStats(true)}
-                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-                        disabled={isRefreshing}
-                    >
-                        <RefreshCw
-                            className={`text-white ${isRefreshing ? "animate-spin" : ""}`}
-                            size={20}
-                        />
-                    </button>
-                </div>
+                <button
+                    onClick={handleRefresh}
+                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                    <RefreshCw className={cn("text-white", isRefreshing && "animate-spin")} size={18}/>
+                </button>
             </div>
 
-            {/* Total Stats */}
-            {stats && (
-                <CheckinCounter
-                    checkedIn={stats.checkedIn}
-                    total={stats.totalMembers}
-                    className="mb-6"
-                />
-            )}
+            <AttendanceCounter totals={board.totals} className="mb-6"/>
 
-            {/* Team Progress Cards */}
-            <div className="space-y-3">
-                <h2 className="text-white font-semibold mb-3">Theo đội</h2>
-                {stats?.teamStats.map((team) => (
-                    <TeamProgressCard key={team.teamId} team={team}/>
+            <div className="space-y-4">
+                {board.teams.map((team) => (
+                    <div key={team.id} className="bg-white rounded-2xl p-4 shadow-lg">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-full" style={{backgroundColor: team.color}}/>
+                                <span className="font-semibold text-gray-800">{team.name}</span>
+                            </div>
+                            <span className="text-gray-500 text-sm">
+                                {team.workingCount} đang làm / {team.members.length}
+                            </span>
+                        </div>
+
+                        <div className="divide-y divide-gray-100">
+                            {team.members.map((member) => (
+                                <div key={member.id} className="flex items-center gap-3 py-2">
+                                    <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", STATE_DOT[member.state])}/>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-800 truncate">
+                                            {member.name.split("(")[0].trim()}
+                                        </p>
+                                        <p className="text-gray-500 text-xs">
+                                            {member.openedAt && `Vào ${localTimeLabel(new Date(member.openedAt), board.policy)}`}
+                                            {member.lastCheckOutAt && ` · Ra ${localTimeLabel(new Date(member.lastCheckOutAt), board.policy)}`}
+                                            {member.workedMinutes > 0 && ` · ${formatDuration(member.workedMinutes)}`}
+                                            {member.state === "OUT" && !member.lastCheckOutAt && "Chưa check-in"}
+                                        </p>
+                                        <StatusBadges statuses={member.statuses} className="mt-1"/>
+                                    </div>
+                                    {member.otMinutes > 0 && (
+                                        <span className="text-warning font-semibold text-sm flex-shrink-0">
+                                            +{formatDuration(member.otMinutes)}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ))}
             </div>
-
-            {/* Footer hint */}
-            <p className="text-center text-white/60 text-sm mt-8">
-                Chọn đội để xem chi tiết và quản lý check-in
-            </p>
         </div>
     );
 }

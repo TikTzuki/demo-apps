@@ -9,14 +9,6 @@ export function generateId(): string {
     return Math.random().toString(36).substring(2, 9);
 }
 
-export function formatTime(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-}
-
 // Team colors for bubbles
 export const TEAM_COLORS = [
     "#FF6B6B", // Red

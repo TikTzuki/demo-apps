@@ -1,44 +1,14 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {CheckinStats, Team} from "@/lib/types";
-import {TeamBubble} from "@/components/bubble/TeamBubble";
-import {CheckinCounter} from "@/components/checkin/CheckinCounter";
-import {CuteFace} from "@/components/cute/CuteFace";
-import {BarChart3} from "lucide-react";
 import Link from "next/link";
+import {BarChart3, ShieldCheck} from "lucide-react";
+import {useBoard} from "@/lib/hooks/useBoard";
+import {TeamBubble} from "@/components/bubble/TeamBubble";
+import {AttendanceCounter} from "@/components/attendance/AttendanceCounter";
+import {CuteFace} from "@/components/cute/CuteFace";
 
 export default function HomePage() {
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [stats, setStats] = useState<CheckinStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const fetchData = async () => {
-        try {
-            const [teamsRes, statsRes] = await Promise.all([
-                fetch("/api/teams"),
-                fetch("/api/stats"),
-            ]);
-
-            const teamsData = await teamsRes.json();
-            const statsData = await statsRes.json();
-
-            if (teamsData.success) setTeams(teamsData.data);
-            if (statsData.success) setStats(statsData.data);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-
-        // Auto refresh every 5 seconds
-        const interval = setInterval(fetchData, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    const {board, isLoading, error} = useBoard();
 
     if (isLoading) {
         return (
@@ -50,43 +20,43 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen p-4 pb-8">
-            {/* Header */}
             <div className="text-center mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                    🎉 HACKATHON 2026
-                </h1>
-                <p className="text-white/80 text-sm sm:text-base">NEWERA.INC CHECK-IN</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">⏰ CHECK IN</h1>
+                <p className="text-white/80 text-sm sm:text-base">NEWERA.INC</p>
                 <CuteFace size="md" expression="happy" className="text-white mt-2"/>
             </div>
 
-            {/* Stats Counter */}
-            {stats && (
-                <CheckinCounter
-                    checkedIn={stats.checkedIn}
-                    total={stats.totalMembers}
-                    className="mb-6"
-                />
+            {error && (
+                <div className="bg-danger/20 border border-danger/40 text-white rounded-xl p-3 mb-4 text-center text-sm">
+                    {error}
+                </div>
             )}
 
-            {/* Stats Link */}
-            <Link href="/stats">
-                <div
-                    className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-6 flex items-center justify-center gap-2 hover:bg-white/30 transition-colors">
-                    <BarChart3 className="text-white" size={20}/>
-                    <span className="text-white font-medium">Xem thống kê chi tiết</span>
-                </div>
-            </Link>
+            {board && <AttendanceCounter totals={board.totals} className="mb-6"/>}
 
-            {/* Team Bubbles */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+                <Link href="/stats">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-white/30 transition-colors">
+                        <BarChart3 className="text-white" size={18}/>
+                        <span className="text-white font-medium text-sm">Bảng hôm nay</span>
+                    </div>
+                </Link>
+                <Link href="/admin">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-white/30 transition-colors">
+                        <ShieldCheck className="text-white" size={18}/>
+                        <span className="text-white font-medium text-sm">Quản trị</span>
+                    </div>
+                </Link>
+            </div>
+
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                {teams.map((team, index) => (
+                {board?.teams.map((team, index) => (
                     <TeamBubble key={team.id} team={team} index={index}/>
                 ))}
             </div>
 
-            {/* Footer hint */}
             <p className="text-center text-white/60 text-sm mt-8">
-                Chọn đội của bạn để check-in
+                Chọn đội của bạn để check-in / check-out
             </p>
         </div>
     );
