@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import type {AttendancePolicy, DayStatus} from "@/lib/attendance/compute";
 import type {RangeRow} from "@/lib/attendance/queries";
 import {formatDuration, localDateTimeLabel, localTimeLabel, workDateLabel} from "@/lib/attendance/time";
+import {summarizeByMember, toHours} from "./summary";
 
 const STATUS_LABELS: Record<DayStatus, string> = {
     ABSENT: "Vắng",
@@ -14,8 +15,14 @@ const STATUS_LABELS: Record<DayStatus, string> = {
     MISSING_CHECKOUT: "Thiếu check-out",
 };
 
+/** Not reported in the export: attendance is judged on hours, not on arrival time. */
+const HIDDEN_STATUSES: readonly DayStatus[] = ["LATE", "EARLY_LEAVE"];
+
 export function formatStatuses(statuses: readonly DayStatus[]): string {
-    return statuses.map((s) => STATUS_LABELS[s]).join(", ");
+    return statuses
+        .filter((s) => !HIDDEN_STATUSES.includes(s))
+        .map((s) => STATUS_LABELS[s])
+        .join(", ");
 }
 
 const HEADERS = [
@@ -40,6 +47,68 @@ const HEADERS = [
 ];
 
 const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 18, 26, 30, 14];
+
+const SUMMARY_HEADERS = [
+    "Mã NV",
+    "Nhân viên",
+    "Đội",
+    "Số ngày công",
+    "Tổng giờ làm",
+    "Giờ thường",
+    "Giờ OT",
+    "OT qua đêm",
+    "Thiếu check-out (ngày)",
+];
+
+const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 14, 22];
+
+/**
+ * Per-person totals for the same range as the detail sheet.
+ *
+ * Hours are written as decimal NUMBERS (8.5, not "8h30") so payroll can sum a
+ * column or multiply it by a rate. The detail sheet keeps the readable h:mm form.
+ */
+function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: Date }): XLSX.WorkSheet {
+    const totals = summarizeByMember(rows);
+
+    const body = totals.map((t) => [
+        t.employeeCode ?? "",
+        t.memberName,
+        t.teamName,
+        t.daysWorked,
+        toHours(t.workedMinutes),
+        toHours(t.regularMinutes),
+        toHours(t.otMinutes),
+        toHours(t.overnightOtMinutes),
+        t.missingCheckoutDays,
+    ]);
+
+    const sum = (pick: (t: (typeof totals)[number]) => number) => totals.reduce((n, t) => n + pick(t), 0);
+
+    const grandTotal = totals.length === 0 ? [] : [[
+        "", `TỔNG (${totals.length} người)`, "",
+        sum((t) => t.daysWorked),
+        toHours(sum((t) => t.workedMinutes)),
+        toHours(sum((t) => t.regularMinutes)),
+        toHours(sum((t) => t.otMinutes)),
+        toHours(sum((t) => t.overnightOtMinutes)),
+        sum((t) => t.missingCheckoutDays),
+    ]];
+
+    const sheetData = [
+        [`Tổng công: ${workDateLabel(range.from)} — ${workDateLabel(range.to)}`],
+        ["Đơn vị giờ: số thập phân (8.5 = 8 giờ 30 phút). Chi tiết từng phiên xem sheet \"Chi tiết chấm công\"."],
+        [],
+        SUMMARY_HEADERS,
+        ...body,
+        ...grandTotal,
+    ];
+
+    const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+    sheet["!cols"] = SUMMARY_WIDTHS.map((wch) => ({wch}));
+    sheet["!freeze"] = {xSplit: "0", ySplit: "4"};
+    return sheet;
+}
 
 /**
  * Raw-session export.
@@ -104,6 +173,7 @@ export function buildDailyDetailWorkbook(
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, sheet, "Chi tiết chấm công");
+    XLSX.utils.book_append_sheet(workbook, buildSummarySheet(rows, range), "Tổng công");
 
     return XLSX.write(workbook, {type: "buffer", bookType: "xlsx"});
 }

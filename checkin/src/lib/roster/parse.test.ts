@@ -143,3 +143,30 @@ describe("parseRoster — file encodings", () => {
         expect(rows[0].name).toBe("Nguyễn Văn An");
     });
 });
+
+describe("parseRoster — real HR export shapes", () => {
+    it("reads Newera's export headers, preferring Dept. over Division", () => {
+        // Verbatim header row from the HR export, including the blank leading line.
+        const {rows, issues} = parseRoster(csv(
+            ",,,,,,,,,\n" +
+            "No.,E. C,Full name,Giới Tính,Position,Dept.,Division,Đăng ký ngủ lại Văn phòng (20/8),Bạn có cần túi ngủ không?,Work Location \n" +
+            "1,E0023,Nguyễn Thiện Minh,,CEO,BOM, BOM ,,,HCM\n" +
+            "44,E0042,Trần Thanh Lộc,Nam,Manager - Engineering - Platform,Platform, Technology ,,,HCM\n"
+        ));
+
+        expect(issues).toEqual([]);
+        expect(rows).toHaveLength(2);
+        // "Platform" is the Dept.; "Technology" is the Division. Dept. comes first.
+        expect(rows[1]).toMatchObject({
+            employeeCode: "E0042", name: "Trần Thanh Lộc", teamName: "Platform",
+        });
+    });
+
+    it("falls back to Division when there is no department column", () => {
+        const {rows} = parseRoster(csv(
+            "E. C,Full name,Division\nE0023,Nguyễn Thiện Minh,Technology\n"
+        ));
+
+        expect(rows[0].teamName).toBe("Technology");
+    });
+});

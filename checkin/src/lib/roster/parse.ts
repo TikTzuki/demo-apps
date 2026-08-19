@@ -28,9 +28,16 @@ export interface ParsedRoster {
 
 /** Header spellings we accept, per field. Compared after accent/case stripping. */
 const HEADER_ALIASES: Record<keyof Omit<RosterRow, "rowNumber">, string[]> = {
-    employeeCode: ["ma nv", "ma nhan vien", "manv", "employee code", "employeecode", "code", "ma so"],
+    employeeCode: [
+        "ma nv", "ma nhan vien", "manv", "employee code", "employeecode", "code", "ma so",
+        // Newera's HR export writes this as "E. C".
+        "e c", "ec", "employee no", "ma nhan su",
+    ],
     name: ["ho ten", "ten", "ho va ten", "name", "full name", "fullname", "nhan vien", "employee"],
-    teamName: ["doi", "phong ban", "phong", "bo phan", "team", "department", "dept", "nhom"],
+    // Order matters: when an export carries both a fine-grained department and a
+    // coarse division, the first matching COLUMN wins, so put the narrower
+    // concepts first and let column order in the file break the tie.
+    teamName: ["doi", "phong ban", "phong", "bo phan", "team", "department", "dept", "nhom", "division"],
     email: ["email", "e-mail", "mail", "thu dien tu"],
 };
 
