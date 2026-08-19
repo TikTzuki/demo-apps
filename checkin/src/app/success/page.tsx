@@ -5,6 +5,8 @@ import {useRouter, useSearchParams} from "next/navigation";
 import {LogIn, LogOut, Moon} from "lucide-react";
 import {formatDuration} from "@/lib/attendance/time";
 import {cn} from "@/lib/utils";
+import {ActionBurst} from "@/components/kiosk/ActionBurst";
+import type {AttendanceAction} from "@/components/attendance/ActionModal";
 
 const AUTO_RETURN_MS = 4000;
 
@@ -34,6 +36,9 @@ function SuccessContent() {
         return () => clearTimeout(id);
     }, [router]);
 
+    const burstAction: AttendanceAction =
+        isCheckOut ? "CHECK_OUT" : isOvernight ? "CHECK_IN_OVERNIGHT" : "CHECK_IN";
+
     const theme = isCheckOut
         ? {accent: "bg-checkout", text: "text-checkout", border: "border-checkout", label: "Đã ra ca", Icon: LogOut}
         : isOvernight
@@ -43,10 +48,12 @@ function SuccessContent() {
     const timeLabel = at ? new Date(at).toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh"}) : "";
 
     return (
-        <div className="min-h-screen flex flex-col animate-flash-in">
-            <div className="flex-1 flex flex-col justify-center gap-9 px-8 sm:px-16 py-12">
+        <div className="relative min-h-screen overflow-hidden flex flex-col">
+            <ActionBurst action={burstAction}/>
 
-                <div className="flex items-center gap-7">
+            <div className="relative flex-1 flex flex-col justify-center gap-9 px-8 sm:px-16 py-12">
+
+                <div className="burst-slam flex items-center gap-7">
                     <span className={cn("grid h-24 w-24 sm:h-28 sm:w-28 place-items-center rounded-2xl shrink-0", theme.accent)}>
                         <theme.Icon size={54} className="text-ink" strokeWidth={2.5}/>
                     </span>
@@ -61,13 +68,13 @@ function SuccessContent() {
                     </div>
                 </div>
 
-                <div className="h-px bg-ink-line"/>
+                <div className="burst-rise h-px bg-ink-line"/>
 
                 {isCheckOut ? (
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Stat label="Giờ ra" value={timeLabel}/>
-                        <Stat label="Tổng giờ làm" value={formatDuration(worked)}/>
-                        <Stat label="Giờ thường" value={formatDuration(Math.max(0, worked - ot))}/>
+                        <Stat label="Giờ ra" value={timeLabel} delay="0.34s"/>
+                        <Stat label="Tổng giờ làm" value={formatDuration(worked)} delay="0.39s"/>
+                        <Stat label="Giờ thường" value={formatDuration(Math.max(0, worked - ot))} delay="0.44s"/>
                         <Stat
                             label="Giờ OT"
                             value={ot > 0 ? formatDuration(ot) : "0"}
@@ -75,14 +82,14 @@ function SuccessContent() {
                         />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-4 max-w-lg">
+                    <div className="burst-rise grid grid-cols-2 gap-4 max-w-lg">
                         <Stat label="Giờ vào ca" value={timeLabel}/>
                         <Stat label="Hôm nay đã làm" value={formatDuration(worked)}/>
                     </div>
                 )}
 
                 {isCheckOut && ot > 0 && (
-                    <div className={cn("flex items-center gap-3 rounded-xl bg-ink-raised px-5 py-4 border-l-4", theme.border)}>
+                    <div className={cn("burst-rise flex items-center gap-3 rounded-xl bg-ink-raised px-5 py-4 border-l-4", theme.border)}>
                         <span className="text-base text-zinc-300">
                             {overnightOt > 0
                                 ? <>Trong đó <strong className={theme.text}>{formatDuration(overnightOt)}</strong> là OT qua đêm.</>
@@ -92,7 +99,7 @@ function SuccessContent() {
                 )}
             </div>
 
-            <div className="px-8 sm:px-16 pb-9 flex items-center gap-4">
+            <div className="relative px-8 sm:px-16 pb-9 flex items-center gap-4">
                 <div className="flex-1 h-1.5 rounded-full bg-ink-line overflow-hidden">
                     <div className={cn("h-1.5 rounded-full animate-sweep", theme.accent)}/>
                 </div>
@@ -102,12 +109,16 @@ function SuccessContent() {
     );
 }
 
-function Stat({label, value, highlight}: { label: string; value: string; highlight?: boolean }) {
+function Stat({label, value, highlight, delay}: {
+    label: string; value: string; highlight?: boolean; delay?: string;
+}) {
     return (
-        <div className={cn(
-            "rounded-xl border-2 px-6 py-5 flex flex-col gap-2.5",
-            highlight ? "border-checkout bg-[#1f1608]" : "border-ink-line bg-ink-raised"
-        )}>
+        <div
+            style={delay ? {animationDelay: delay} : undefined}
+            className={cn(
+                "rounded-xl border-2 px-6 py-5 flex flex-col gap-2.5",
+                highlight ? "burst-payoff border-checkout bg-[#1f1608]" : "burst-rise border-ink-line bg-ink-raised"
+            )}>
             <span className={cn("text-sm uppercase tracking-wider", highlight ? "text-checkout" : "text-zinc-500")}>
                 {label}
             </span>

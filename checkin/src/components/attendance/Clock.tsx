@@ -9,6 +9,10 @@ const WEEKDAYS = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ N
  * Wall-clock for the kiosk, ticking in the office timezone rather than the
  * tablet's — the tablet may be set to anything, and the time shown has to be
  * the one attendance is measured against.
+ *
+ * Scheduled to the next minute boundary rather than polled on an interval, so
+ * the displayed minute changes at the moment it actually changes, and the
+ * roll-over animation tells the truth.
  */
 export function Clock({policy, className, size = "lg"}: {
     policy: OffsetPolicy;
@@ -18,9 +22,17 @@ export function Clock({policy, className, size = "lg"}: {
     const [now, setNow] = useState<Date | null>(null);
 
     useEffect(() => {
-        setNow(new Date());
-        const id = setInterval(() => setNow(new Date()), 1000 * 20);
-        return () => clearInterval(id);
+        let timer: ReturnType<typeof setTimeout>;
+
+        const tick = () => {
+            const at = new Date();
+            setNow(at);
+            // +50ms of slack so we land just after the boundary, never just before.
+            timer = setTimeout(tick, 60_000 - (at.getTime() % 60_000) + 50);
+        };
+
+        tick();
+        return () => clearTimeout(timer);
     }, []);
 
     if (!now) {
@@ -31,16 +43,21 @@ export function Clock({policy, className, size = "lg"}: {
 
     const local = new Date(now.getTime() + policy.timezoneOffsetMinutes * 60_000);
     const date = `${WEEKDAYS[local.getUTCDay()]}, ${String(local.getUTCDate()).padStart(2, "0")}/${String(local.getUTCMonth() + 1).padStart(2, "0")}/${local.getUTCFullYear()}`;
+    const time = localTimeLabel(now, policy);
 
     return (
         <div className={className}>
             <div className={size === "lg" ? "flex items-baseline gap-5" : "flex items-baseline gap-3"}>
-                <span className={
-                    size === "lg"
-                        ? "tabular text-6xl sm:text-7xl font-bold tracking-tight leading-none"
-                        : "tabular text-3xl font-bold tracking-tight leading-none text-zinc-300"
-                }>
-                    {localTimeLabel(now, policy)}
+                {/* Keyed on the minute so the roll-over restarts the animation. */}
+                <span
+                    key={time}
+                    className={
+                        size === "lg"
+                            ? "clock-tick tabular text-6xl sm:text-7xl font-bold tracking-tight leading-none"
+                            : "clock-tick tabular text-3xl font-bold tracking-tight leading-none text-zinc-300"
+                    }
+                >
+                    {time}
                 </span>
                 <span className={
                     size === "lg"

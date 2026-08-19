@@ -5,9 +5,12 @@ import {BarChart3, ShieldCheck} from "lucide-react";
 import {useBoard} from "@/lib/hooks/useBoard";
 import {Clock} from "@/components/attendance/Clock";
 import {cn} from "@/lib/utils";
+import {IdleBackdrop} from "@/components/kiosk/IdleBackdrop";
+import {AnimatedCount} from "@/components/kiosk/AnimatedCount";
+import {SecondsRing} from "@/components/kiosk/SecondsRing";
 
 export default function HomePage() {
-    const {board, isLoading, error} = useBoard();
+    const {board, isLoading, error, isStale} = useBoard();
 
     if (isLoading || !board) {
         return (
@@ -20,14 +23,18 @@ export default function HomePage() {
     const {totals, policy} = board;
 
     return (
-        <div className="min-h-screen p-6 sm:p-8 flex flex-col gap-5">
+        <div className="relative min-h-screen overflow-hidden p-6 sm:p-8 flex flex-col gap-5">
+            <IdleBackdrop/>
 
-            <header className="flex flex-wrap items-end justify-between gap-6">
-                <div className="flex flex-col gap-2">
+            <header className="relative flex flex-wrap items-end justify-between gap-6">
+                <div className="flex items-center gap-5">
+                    <SecondsRing isStale={isStale}/>
+                    <div className="flex flex-col gap-2">
                     <Clock policy={policy}/>
                     <p className="text-sm text-zinc-500">
                         Ca chuẩn {policy.shiftStartTime}–{policy.otStartTime} · OT tính từ {policy.otStartTime}
                     </p>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-6">
@@ -39,17 +46,17 @@ export default function HomePage() {
                 </div>
             </header>
 
-            <div className="h-px bg-ink-line"/>
+            <div className="relative h-px bg-ink-line"/>
 
-            {error && (
-                <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-zinc-200">
-                    {error} — bảng đang hiện số liệu lần cập nhật gần nhất.
+            {isStale && (
+                <div className="relative rounded-lg border border-checkout/50 bg-checkout/10 px-4 py-3 text-sm text-zinc-100">
+                    Mất kết nối tới máy chủ — số liệu bên dưới là lần cập nhật gần nhất, không phải hiện tại.
                 </div>
             )}
 
-            <h1 className="text-lg sm:text-xl font-semibold text-zinc-400">Chạm vào phòng ban của bạn</h1>
+            <h1 className="relative text-lg sm:text-xl font-semibold text-zinc-400">Chạm vào phòng ban của bạn</h1>
 
-            <div className="stagger grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="stagger relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {board.teams.map((team) => {
                     const present = team.workingCount;
                     const total = team.members.length;
@@ -67,14 +74,18 @@ export default function HomePage() {
                                 <span className="font-semibold leading-tight line-clamp-2">{team.name}</span>
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-baseline gap-1.5">
-                                        <span className={cn("tabular text-xl font-bold", present > 0 ? "text-checkin" : "text-zinc-600")}>
-                                            {present}
-                                        </span>
+                                        <AnimatedCount
+                                            value={present}
+                                            className={cn("text-xl font-bold", present > 0 ? "text-checkin" : "text-zinc-600")}
+                                        />
                                         <span className="tabular text-sm text-zinc-600">/ {total}</span>
                                     </div>
                                     <div className="h-1 rounded-full bg-ink-line overflow-hidden">
                                         <div
-                                            className={cn("h-1 rounded-full transition-all", present > 0 ? "bg-checkin" : "bg-transparent")}
+                                            className={cn(
+                                                "h-1 rounded-full transition-[width] duration-700",
+                                                present > 0 ? "bar-live bg-checkin" : "bg-transparent"
+                                            )}
                                             style={{width: `${pct}%`}}
                                         />
                                     </div>
@@ -85,7 +96,7 @@ export default function HomePage() {
                 })}
             </div>
 
-            <footer className="mt-auto pt-4 flex items-center gap-3">
+            <footer className="relative mt-auto pt-4 flex items-center gap-3">
                 <Link href="/stats" className="flex items-center gap-2 rounded-lg border border-ink-line px-4 py-2.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
                     <BarChart3 size={16}/> Ai đang ở văn phòng
                 </Link>
@@ -100,7 +111,7 @@ export default function HomePage() {
 function Total({value, label, tone}: { value: number; label: string; tone: string }) {
     return (
         <div className="flex flex-col items-end gap-1">
-            <span className={cn("tabular text-3xl font-bold leading-none", tone)}>{value}</span>
+            <AnimatedCount value={value} className={cn("text-3xl font-bold leading-none", tone)}/>
             <span className="text-xs uppercase tracking-wider text-zinc-500">{label}</span>
         </div>
     );

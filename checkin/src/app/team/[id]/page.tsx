@@ -9,6 +9,7 @@ import {MemberBubble} from "@/components/bubble/MemberBubble";
 import {ActionModal, type AttendanceAction} from "@/components/attendance/ActionModal";
 import {Clock} from "@/components/attendance/Clock";
 import type {MemberAttendance} from "@/lib/types";
+import {IdleBackdrop} from "@/components/kiosk/IdleBackdrop";
 
 /** Tapping a person does whatever comes next for them — one control, not three. */
 function nextAction(member: MemberAttendance): AttendanceAction | null {
@@ -89,9 +90,10 @@ export default function TeamPage() {
     }
 
     return (
-        <div className="min-h-screen p-6 sm:p-8 flex flex-col gap-5">
+        <div className="relative min-h-screen overflow-hidden p-6 sm:p-8 flex flex-col gap-5">
+            <IdleBackdrop/>
 
-            <header className="flex items-center gap-5">
+            <header className="relative flex items-center gap-5">
                 <Link href="/" aria-label="Quay lại">
                     <span className="grid h-14 w-14 place-items-center rounded-xl border-2 border-ink-edge text-zinc-400 active:bg-ink-raised transition-colors">
                         <ChevronLeft size={26}/>
@@ -106,7 +108,7 @@ export default function TeamPage() {
                 <Clock policy={board.policy} size="sm" className="hidden sm:block"/>
             </header>
 
-            <div className="h-px bg-ink-line"/>
+            <div className="relative h-px bg-ink-line"/>
 
             {errorMessage && (
                 <div className="rounded-lg border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-zinc-100">
@@ -114,7 +116,7 @@ export default function TeamPage() {
                 </div>
             )}
 
-            <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="stagger relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {team.members.map((member) => (
                     <MemberBubble
                         key={member.id}
@@ -126,7 +128,7 @@ export default function TeamPage() {
                 ))}
             </div>
 
-            <footer className="mt-auto pt-4 flex flex-wrap items-center gap-x-7 gap-y-2 text-sm text-zinc-500">
+            <footer className="relative mt-auto pt-4 flex flex-wrap items-center gap-x-7 gap-y-2 text-sm text-zinc-500">
                 <Legend colour="bg-zinc-600" label="Chưa vào ca — chạm để check-in"/>
                 <Legend colour="bg-checkin" label="Đang làm — chạm để check-out"/>
                 <Legend colour="bg-ink-edge" label="Đã về"/>

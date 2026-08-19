@@ -48,10 +48,364 @@ body {
     animation: rise 0.35s ease-out both;
 }
 
+
+/* ==========================================================================
+   KIOSK MOTION
+   Visual grammar borrowed from flat-colour anime poster art: diagonal wipes,
+   concentric ring bursts, halftone fields, chunky chevrons, four-point sparks.
+   Transform and opacity only — this runs on a wall tablet all day, so every
+   layer must composite on the GPU and never trigger layout or paint.
+   ========================================================================== */
+
+/* -- Idle: three layers, deliberately almost invisible --------------------- */
+
+.idle-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.idle-halftone {
+    position: absolute;
+    inset: -40%;
+    background-image: radial-gradient(#ffffff 1.4px, transparent 1.5px);
+    background-size: 22px 22px;
+    opacity: 0.045;
+    animation: idleDrift 70s linear infinite;
+    will-change: transform;
+}
+
+@keyframes idleDrift {
+    to { transform: translate3d(220px, 220px, 0); }
+}
+
+.idle-arcs {
+    position: absolute;
+    right: -240px;
+    bottom: -280px;
+    width: 760px;
+    height: 760px;
+    animation: idleTurn 120s linear infinite;
+    will-change: transform;
+}
+
+.idle-arc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #10b981;
+    opacity: 0.07;
+}
+
+.idle-arc:nth-child(2) { inset: 70px;  border-color: #f59e0b; opacity: 0.055; }
+.idle-arc:nth-child(3) { inset: 140px; border-color: #6366f1; opacity: 0.05; }
+.idle-arc:nth-child(4) { inset: 210px; border-color: #10b981; opacity: 0.04; }
+
+@keyframes idleTurn {
+    to { transform: rotate(360deg); }
+}
+
+.idle-spark {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    opacity: 0;
+    animation: idleTwinkle 9s ease-in-out infinite;
+}
+
+.idle-spark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fafafa;
+    clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+}
+
+@keyframes idleTwinkle {
+    0%, 88%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+    93%           { opacity: 0.55; transform: scale(1) rotate(35deg); }
+}
+
+/* -- Burst: fires once on arrival, then clears out of the way -------------- */
+
+.burst {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.burst-wipe {
+    position: absolute;
+    inset: -20%;
+    background: var(--burst-color);
+    transform: translate3d(-120%, 0, 0) skewX(-12deg);
+    animation: burstWipe 0.62s cubic-bezier(.2, .8, .2, 1) forwards;
+}
+
+.burst-wipe[data-from="right"] {
+    transform: translate3d(120%, 0, 0) skewX(12deg);
+    animation-name: burstWipeRight;
+}
+
+@keyframes burstWipe {
+    0%        { transform: translate3d(-120%, 0, 0) skewX(-12deg); }
+    30%, 48%  { transform: translate3d(0, 0, 0) skewX(-12deg); }
+    100%      { transform: translate3d(120%, 0, 0) skewX(-12deg); }
+}
+
+@keyframes burstWipeRight {
+    0%        { transform: translate3d(120%, 0, 0) skewX(12deg); }
+    30%, 48%  { transform: translate3d(0, 0, 0) skewX(12deg); }
+    100%      { transform: translate3d(-120%, 0, 0) skewX(12deg); }
+}
+
+.burst-speed {
+    position: absolute;
+    inset: -30%;
+    background: repeating-linear-gradient(115deg, rgba(250, 250, 250, .5) 0 3px, transparent 3px 26px);
+    opacity: 0;
+    animation: burstSpeed 0.4s ease-out forwards;
+}
+
+@keyframes burstSpeed {
+    0%   { opacity: 0; transform: translate3d(-90px, 40px, 0); }
+    30%  { opacity: 0.75; }
+    100% { opacity: 0; transform: translate3d(90px, -40px, 0); }
+}
+
+.burst-ring {
+    position: absolute;
+    top: 50%;
+    left: 22%;
+    width: 200px;
+    height: 200px;
+    margin: -100px 0 0 -100px;
+    border-radius: 50%;
+    border: 5px solid var(--burst-color);
+    opacity: 0;
+    animation: burstRing 0.55s cubic-bezier(.15, .7, .2, 1) forwards;
+}
+
+.burst-ring:nth-of-type(2) { animation-delay: .09s; border-width: 3px; border-color: #fafafa; }
+.burst-ring:nth-of-type(3) { animation-delay: .18s; border-width: 2px; border-color: var(--burst-color); }
+
+@keyframes burstRing {
+    0%   { opacity: 0; transform: scale(.2); }
+    18%  { opacity: .95; }
+    100% { opacity: 0; transform: scale(4.6); }
+}
+
+.burst-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#0c0c0e 2.2px, transparent 2.4px);
+    background-size: 15px 15px;
+    opacity: 0;
+    animation: burstDots 0.5s ease-out forwards;
+}
+
+@keyframes burstDots {
+    0%   { opacity: 0; transform: scale(1.15); }
+    26%  { opacity: .5; transform: scale(1); }
+    100% { opacity: 0; }
+}
+
+.burst-chev {
+    position: absolute;
+    opacity: 0;
+    animation: burstChev 0.5s cubic-bezier(.2, .9, .3, 1) forwards;
+}
+
+@keyframes burstChev {
+    0%   { opacity: 0; transform: translate3d(-70px, 46px, 0) rotate(-38deg) scale(.8); }
+    35%  { opacity: 1; }
+    100% { opacity: 0; transform: translate3d(110px, -74px, 0) rotate(-38deg) scale(1.05); }
+}
+
+.burst-spark {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    opacity: 0;
+    animation: burstSpark 0.55s ease-out forwards;
+}
+
+.burst-spark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fafafa;
+    clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+}
+
+@keyframes burstSpark {
+    0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+    35%  { opacity: 1; transform: scale(1.15) rotate(45deg); }
+    100% { opacity: 0; transform: scale(.5) rotate(90deg); }
+}
+
+/* -- Content beats: these END VISIBLE, the effect layers do not ------------ */
+
+.burst-slam {
+    opacity: 0;
+    animation: burstSlam 0.5s cubic-bezier(.16, 1.1, .3, 1) 0.16s forwards;
+}
+
+@keyframes burstSlam {
+    0%   { opacity: 0; transform: scale(1.45) rotate(-6deg); }
+    55%  { opacity: 1; transform: scale(1) rotate(-1.5deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.burst-rise {
+    opacity: 0;
+    animation: burstRise 0.42s cubic-bezier(.2, .8, .2, 1) 0.34s forwards;
+}
+
+@keyframes burstRise {
+    0%   { opacity: 0; transform: translate3d(0, 22px, 0); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* The overtime figure lands last and hardest — it is why they stayed late. */
+.burst-payoff {
+    opacity: 0;
+    animation: burstPayoff 0.52s cubic-bezier(.16, 1.3, .3, 1) 0.52s forwards,
+               burstGlow 0.9s ease-in-out 0.52s;
+}
+
+@keyframes burstPayoff {
+    0%   { opacity: 0; transform: scale(.72) rotate(-4deg); }
+    55%  { opacity: 1; transform: scale(1.09) rotate(1deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes burstGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    45%      { box-shadow: 0 0 0 14px rgba(245, 158, 11, .28); }
+}
+
+/* -- Main screen: ambient + feedback -------------------------------------- */
+
+/* A slow light band crossing the screen. One pass every ~26s: enough to keep
+   the wall feeling alive, rare enough that nobody watches for it. */
+.idle-sheen {
+    position: absolute;
+    top: -60%;
+    bottom: -60%;
+    width: 34%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .028), transparent);
+    transform: skewX(-14deg) translate3d(-160%, 0, 0);
+    animation: idleSheen 26s cubic-bezier(.45, 0, .55, 1) infinite;
+    will-change: transform;
+}
+
+@keyframes idleSheen {
+    0%, 62%  { transform: skewX(-14deg) translate3d(-160%, 0, 0); }
+    100%     { transform: skewX(-14deg) translate3d(420%, 0, 0); }
+}
+
+/* Chunky chevrons from the poster vocabulary, drifting far in the background. */
+.idle-chev {
+    position: absolute;
+    opacity: 0.05;
+    animation: idleChev 34s ease-in-out infinite;
+    will-change: transform;
+}
+
+@keyframes idleChev {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-38deg); }
+    50%      { transform: translate3d(26px, -34px, 0) rotate(-38deg); }
+}
+
+/* A count that just changed. Meaningful motion: somebody tapped in or out. */
+.count-pop {
+    display: inline-block;
+    animation: countPop 0.5s cubic-bezier(.16, 1.3, .3, 1);
+}
+
+@keyframes countPop {
+    0%   { transform: scale(.55) translate3d(0, 6px, 0); opacity: 0; }
+    55%  { transform: scale(1.14) translate3d(0, 0, 0); opacity: 1; }
+    100% { transform: scale(1) translate3d(0, 0, 0); opacity: 1; }
+}
+
+/* The clock's minute rolling over. */
+.clock-tick {
+    display: inline-block;
+    animation: clockTick 0.42s cubic-bezier(.2, .9, .25, 1);
+}
+
+@keyframes clockTick {
+    0%   { transform: translate3d(0, -14%, 0); opacity: .35; }
+    100% { transform: none; opacity: 1; }
+}
+
+/* Presence bar on a team that has people in right now. */
+.bar-live {
+    position: relative;
+    overflow: hidden;
+}
+
+.bar-live::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .6), transparent);
+    transform: translate3d(-100%, 0, 0);
+    animation: barShimmer 3.6s ease-in-out infinite;
+}
+
+@keyframes barShimmer {
+    0%, 55%  { transform: translate3d(-100%, 0, 0); }
+    100%     { transform: translate3d(220%, 0, 0); }
+}
+
+/* One sweep per minute, synced to the wall clock by a negative delay. */
+.seconds-sweep {
+    animation: secondsSweep 60s linear infinite;
+}
+
+@keyframes secondsSweep {
+    from { stroke-dashoffset: 106.81; }
+    to   { stroke-dashoffset: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    /* Decoration is removed outright, not played instantly — a shortened
+       animation is still scheduled work, and these layers carry no meaning. */
+    .idle-layer,
+    .burst {
+        display: none !important;
+    }
+
+    /* Content beats must land in their FINAL state, never stuck at opacity 0. */
+    .bar-live::after {
+        display: none !important;
+    }
+
+    /* The ring stays — it carries a health signal, not decoration — but stops
+       sweeping and simply sits full. */
+    .seconds-sweep {
+        animation: none !important;
+        stroke-dashoffset: 0 !important;
+    }
+
+    .count-pop,
+    .clock-tick,
+    .burst-slam,
+    .burst-rise,
+    .burst-payoff,
+    .stagger > * {
+        opacity: 1 !important;
+        transform: none !important;
     }
 }

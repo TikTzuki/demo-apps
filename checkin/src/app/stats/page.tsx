@@ -6,10 +6,12 @@ import {useBoard} from "@/lib/hooks/useBoard";
 import {Clock} from "@/components/attendance/Clock";
 import {formatDuration, localTimeLabel} from "@/lib/attendance/time";
 import {cn} from "@/lib/utils";
+import {IdleBackdrop} from "@/components/kiosk/IdleBackdrop";
+import {SecondsRing} from "@/components/kiosk/SecondsRing";
 
 /** Always-on board: who is in the office right now, readable across the room. */
 export default function StatsPage() {
-    const {board, isLoading, error} = useBoard();
+    const {board, isLoading, isStale} = useBoard();
 
     if (isLoading || !board) {
         return (
@@ -24,9 +26,10 @@ export default function StatsPage() {
         .filter((team) => team.here.length > 0);
 
     return (
-        <div className="min-h-screen p-6 sm:p-8 flex flex-col gap-5">
+        <div className="relative min-h-screen overflow-hidden p-6 sm:p-8 flex flex-col gap-5">
+            <IdleBackdrop/>
 
-            <header className="flex items-center gap-5">
+            <header className="relative flex items-center gap-5">
                 <Link href="/" aria-label="Quay lại">
                     <span className="grid h-12 w-12 place-items-center rounded-xl border-2 border-ink-edge text-zinc-400">
                         <ChevronLeft size={22}/>
@@ -46,14 +49,15 @@ export default function StatsPage() {
                         <span className="w-2.5 h-2.5 rounded-full bg-checkout"/> {board.totals.onOt} đang OT
                     </span>
                     <Clock policy={board.policy} size="sm" className="hidden lg:block"/>
+                    <SecondsRing isStale={isStale} size={34}/>
                 </div>
             </header>
 
-            <div className="h-px bg-ink-line"/>
+            <div className="relative h-px bg-ink-line"/>
 
-            {error && (
-                <div className="rounded-lg border border-ink-edge bg-ink-raised px-4 py-3 text-sm text-zinc-400">
-                    {error} — đang hiện số liệu lần cập nhật gần nhất.
+            {isStale && (
+                <div className="relative rounded-lg border border-checkout/50 bg-checkout/10 px-4 py-3 text-sm text-zinc-100">
+                    Mất kết nối tới máy chủ — đang hiện số liệu lần cập nhật gần nhất.
                 </div>
             )}
 
@@ -65,7 +69,7 @@ export default function StatsPage() {
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-5">
                     {present.map((team) => (
                         <div key={team.id} className="flex flex-col gap-2.5">
                             <div className="flex items-baseline justify-between border-b-2 border-ink-line pb-2">
