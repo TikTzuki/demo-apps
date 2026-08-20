@@ -114,7 +114,7 @@ describe("hidden statuses", () => {
         const detail = grid("Chi tiết chấm công");
         const joined = detail.map((r) => String(r[15] ?? "")).join(" | ");
 
-        expect(joined).toContain("OT qua đêm");
+        // The overnight column is gone from the export — only total OT matters.
         expect(joined).not.toContain("Đi muộn");
     });
 });

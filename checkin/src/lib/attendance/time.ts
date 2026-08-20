@@ -76,6 +76,21 @@ export function boundaryAt(workDate: Date, hhmm: string, policy: TimePolicy): Da
     );
 }
 
+/**
+ * The instant a business day ends: the following day's cutoff.
+ *
+ * Nothing a session does after this belongs to that day — which is what bounds
+ * overtime. With a midnight cutoff, work after 00:00 is the next day's problem.
+ */
+export function businessDayEnd(workDate: Date, policy: TimePolicy): Date {
+    return new Date(
+        workDate.getTime()
+        + DAY_MS
+        + policy.dayCutoffHour * HOUR_MS
+        - policy.timezoneOffsetMinutes * MINUTE_MS
+    );
+}
+
 /** A Date at UTC midnight → "YYYY-MM-DD". */
 export function workDateKey(workDate: Date): string {
     return workDate.toISOString().slice(0, 10);

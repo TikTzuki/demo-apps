@@ -22,6 +22,8 @@ export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
 
     const minutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
     const clockSpan = minutes(otStartTime) - minutes(shiftStartTime);
+    // Overtime is bounded by the day's end: otStartTime → the cutoff.
+    const otCap = (dayCutoffHour === 0 ? 24 * 60 : dayCutoffHour * 60 + 24 * 60) - minutes(otStartTime);
     // An example of overtime too short to count, derived rather than assumed.
     const belowThreshold = minutes(otStartTime) + Math.max(1, Math.floor(otMinMinutes / 2));
     const belowThresholdLabel =
@@ -44,12 +46,15 @@ export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
 
                     <Section
                         n="2"
-                        title={`Ngày công đổi lúc ${cutoff}, không phải nửa đêm`}
+                        title={`Ngày công kết thúc lúc ${cutoff}`}
                     >
-                        Đây là mốc quan trọng nhất và cũng dễ hiểu nhầm nhất. Ca đêm bắt đầu 22:00 ngày 19 và kết thúc
-                        02:00 ngày 20 vẫn thuộc trọn <strong>ngày công 19</strong>, vì {cutoff} chưa tới.
-                        Nhờ vậy cả hai chặng của một đêm làm việc nằm chung một dòng trong báo cáo,
-                        thay vì bị cắt đôi qua hai ngày.
+                        Mỗi phiên chỉ được tính công <strong>trong ngày công của chính nó</strong>.
+                        Ca làm kéo qua {cutoff} sẽ dừng tính ở đó; phần sau thuộc về ngày hôm sau.
+                        <p className="mt-2">
+                            Hệ quả trực tiếp: OT tối đa mỗi ngày là từ {otStartTime} đến {cutoff} —
+                            tức <strong>{formatDuration(otCap)}</strong>. Người làm tới 02:00 sáng
+                            không vì thế mà có 8 tiếng OT trong một ngày.
+                        </p>
                     </Section>
 
                     <Section
@@ -97,8 +102,8 @@ export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
                                 và <strong>không có OT</strong>;
                             </li>
                             <li className="list-disc">
-                                ca bắt đầu sau {otStartTime} → ghi giờ ra là <strong>{cutoff}</strong>, giữ lại
-                                phần OT thực sự đã làm.
+                                ca bắt đầu sau {otStartTime} → ghi giờ ra là <strong>{cutoff}</strong> (hết ngày công),
+                                giữ lại phần OT thực sự đã làm.
                             </li>
                         </ul>
                         <p className="mt-2">

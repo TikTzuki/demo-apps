@@ -1,5 +1,5 @@
 import type {AttendancePolicy} from "./compute";
-import {addDays, boundaryAt, MINUTE_MS, workDateOf} from "./time";
+import {boundaryAt, businessDayEnd, MINUTE_MS, workDateOf} from "./time";
 
 /**
  * Closing forgotten sessions, without paying people for forgetting.
@@ -40,12 +40,7 @@ export function autoCloseAt(
     const shiftEnd = boundaryAt(workDate, policy.otStartTime, policy);
     if (shiftEnd.getTime() > checkInAt.getTime()) return shiftEnd;
 
-    // Cutoff of the NEXT calendar day — the instant this business day ends.
-    const cutoff = new Date(
-        addDays(workDate, 1).getTime()
-        + policy.dayCutoffHour * 60 * MINUTE_MS
-        - policy.timezoneOffsetMinutes * MINUTE_MS
-    );
+    const cutoff = businessDayEnd(workDate, policy);
 
     // A session that somehow began after even the cutoff still needs a later
     // end than its start, or the row would be invalid.

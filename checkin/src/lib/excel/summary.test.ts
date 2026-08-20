@@ -67,8 +67,9 @@ describe("summarizeByMember", () => {
         // Two sessions, one business day.
         expect(totals[0].daysWorked).toBe(1);
         expect(totals[0].regularMinutes).toBe(480);
-        expect(totals[0].otMinutes).toBe(30 + 240);
-        expect(totals[0].overnightOtMinutes).toBe(240);
+        // Night leg counts only to midnight under the midnight cutoff.
+        expect(totals[0].otMinutes).toBe(30 + 120);
+        expect(totals[0].overnightOtMinutes).toBe(120);
     });
 
     it("keeps people separate and sorts by team then name", () => {

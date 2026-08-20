@@ -17,15 +17,15 @@ describe("autoCloseAt — what time a forgotten session is credited to", () => {
         expect(at.toISOString()).toBe(local("2026-08-19", "18:00").toISOString());
     });
 
-    it("credits a night shift to the 05:00 day cutoff", () => {
+    it("credits a night shift to the end of its business day", () => {
         const at = autoCloseAt(DAY, local("2026-08-19", "22:00"), DEFAULT_POLICY);
-        expect(at.toISOString()).toBe(local("2026-08-20", "05:00").toISOString());
+        expect(at.toISOString()).toBe(local("2026-08-20", "00:00").toISOString());
     });
 
     it("uses the cutoff for anyone who started after the shift already ended", () => {
         // Started at 19:00 — 18:00 is behind them, so the shift end cannot apply.
         const at = autoCloseAt(DAY, local("2026-08-19", "19:00"), DEFAULT_POLICY);
-        expect(at.toISOString()).toBe(local("2026-08-20", "05:00").toISOString());
+        expect(at.toISOString()).toBe(local("2026-08-20", "00:00").toISOString());
     });
 
     it("never produces a check-out at or before the check-in", () => {
@@ -46,12 +46,19 @@ describe("shouldAutoClose — only genuinely abandoned sessions", () => {
         )).toBe(false);
     });
 
-    it("leaves a night shift alone while it is still running", () => {
-        // 23:00 on the 19th, checked at 02:00 — still the 19th's business day.
+    it("leaves a shift alone while its own business day is still running", () => {
+        expect(shouldAutoClose(
+            {workDate: DAY, checkInAt: local("2026-08-19", "20:00")},
+            DEFAULT_POLICY, local("2026-08-19", "23:30")
+        )).toBe(false);
+    });
+
+    it("closes a night shift once midnight has passed", () => {
+        // The business day ended at 00:00, so nothing is still running on it.
         expect(shouldAutoClose(
             {workDate: DAY, checkInAt: local("2026-08-19", "23:00")},
             DEFAULT_POLICY, local("2026-08-20", "02:00")
-        )).toBe(false);
+        )).toBe(true);
     });
 
     it("closes a session left open past the cutoff of its own business day", () => {

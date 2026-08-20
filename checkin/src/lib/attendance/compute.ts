@@ -10,6 +10,7 @@
 
 import {
     boundaryAt,
+    businessDayEnd,
     localMinutesOfDay,
     MINUTE_MS,
     overlapMinutes,
@@ -45,7 +46,7 @@ export interface AttendancePolicy extends TimePolicy {
 
 export const DEFAULT_POLICY: AttendancePolicy = {
     timezoneOffsetMinutes: 420,
-    dayCutoffHour: 5,
+    dayCutoffHour: 0,
     shiftStartTime: "08:00",
     lateAfterTime: "10:00",
     otStartTime: "18:00",
@@ -136,14 +137,23 @@ function computeSession(
     }
 
     const checkOutAt = session.checkOutAt;
+
+    // Minutes are only credited within the session's own business day. A shift
+    // running past the cutoff stops counting there — with a midnight cutoff
+    // that is what caps overtime at otStartTime → 24:00.
+    const dayEnd = businessDayEnd(session.workDate, policy);
+    const countedEnd = checkOutAt.getTime() < dayEnd.getTime() ? checkOutAt : dayEnd;
+
     const otBoundary = boundaryAt(session.workDate, policy.otStartTime, policy);
     const breakStart = boundaryAt(session.workDate, policy.breakStartTime, policy);
     const breakEnd = new Date(breakStart.getTime() + policy.breakMinutes * MINUTE_MS);
 
+    // The true span stays true — the export shows it for auditing — while the
+    // credited minutes below respect the day boundary.
     const durationMinutes = overlapMinutes(session.checkInAt, checkOutAt, null, null);
-    const regularRaw = overlapMinutes(session.checkInAt, checkOutAt, null, otBoundary);
+    const regularRaw = overlapMinutes(session.checkInAt, countedEnd, null, otBoundary);
     const breakDeducted = Math.min(
-        overlapMinutes(session.checkInAt, checkOutAt, breakStart, breakEnd),
+        overlapMinutes(session.checkInAt, countedEnd, breakStart, breakEnd),
         policy.breakMinutes,
         regularRaw
     );
@@ -155,7 +165,7 @@ function computeSession(
         durationMinutes,
         breakDeducted,
         regularMinutes: Math.max(0, regularRaw - breakDeducted),
-        otMinutes: overlapMinutes(session.checkInAt, checkOutAt, otBoundary, null),
+        otMinutes: overlapMinutes(session.checkInAt, countedEnd, otBoundary, null),
     };
 }
 

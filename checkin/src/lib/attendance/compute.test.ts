@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {computeDay, DEFAULT_POLICY, type AttendancePolicy, type SessionInput} from "./compute";
+import {type AttendancePolicy, computeDay, DEFAULT_POLICY, type SessionInput} from "./compute";
 import {parseWorkDateKey} from "./time";
 
 const WORK_DATE = parseWorkDateKey("2026-08-19");
@@ -61,7 +61,7 @@ describe("computeDay — the shifts described in the brief", () => {
         expect(result.statuses).toContain("OT");
     });
 
-    it("splits an overnight return into its own OT bucket", () => {
+    it("splits an overnight return into its own OT bucket, capped at midnight", () => {
         const result = day([
             session({
                 id: "day",
@@ -77,8 +77,10 @@ describe("computeDay — the shifts described in the brief", () => {
         ]);
 
         expect(result.regularMinutes).toBe(480);
-        expect(result.otMinutes).toBe(30 + 240);
-        expect(result.overnightOtMinutes).toBe(240);
+        // 18:00→18:30 is 30 minutes; the night leg counts 22:00→00:00 only —
+        // the two hours past midnight belong to the next business day.
+        expect(result.otMinutes).toBe(30 + 120);
+        expect(result.overnightOtMinutes).toBe(120);
         expect(result.statuses).toContain("OT_OVERNIGHT");
         expect(result.sessions).toHaveLength(2);
     });
@@ -169,17 +171,14 @@ describe("computeDay — thresholds and edges", () => {
 });
 
 describe("workDate attribution", () => {
-    it("keeps a session that crosses midnight on the day it started", async () => {
+    it("ends the business day at midnight", async () => {
         const {workDateOf} = await import("./time");
 
         expect(workDateOf(local("2026-08-19", "22:00"), DEFAULT_POLICY).toISOString()).toBe(
             "2026-08-19T00:00:00.000Z"
         );
+        // Midnight starts a new business day, so work past it is the next day's.
         expect(workDateOf(local("2026-08-20", "02:00"), DEFAULT_POLICY).toISOString()).toBe(
-            "2026-08-19T00:00:00.000Z"
-        );
-        // Past the 05:00 cutoff a new business day has begun.
-        expect(workDateOf(local("2026-08-20", "06:00"), DEFAULT_POLICY).toISOString()).toBe(
             "2026-08-20T00:00:00.000Z"
         );
     });
@@ -193,7 +192,38 @@ describe("classifyKind", () => {
         expect(classifyKind(local("2026-08-19", "19:00"), DEFAULT_POLICY)).toBe("DAY");
         expect(classifyKind(local("2026-08-19", "21:00"), DEFAULT_POLICY)).toBe("OVERNIGHT");
         expect(classifyKind(local("2026-08-19", "23:30"), DEFAULT_POLICY)).toBe("OVERNIGHT");
-        // 02:00 is the tail of last night's shift, not a new day shift.
-        expect(classifyKind(local("2026-08-20", "02:00"), DEFAULT_POLICY)).toBe("OVERNIGHT");
+        // With a midnight cutoff there is no "tail of last night": 02:00 opens a
+        // new business day, so it is that day's shift.
+        expect(classifyKind(local("2026-08-20", "02:00"), DEFAULT_POLICY)).toBe("DAY");
+    });
+});
+
+describe("day cutoff at midnight — max 6h OT per day", () => {
+    const MIDNIGHT: typeof DEFAULT_POLICY = {...DEFAULT_POLICY, dayCutoffHour: 0};
+
+    function dayAt(policy: typeof DEFAULT_POLICY, sessions: SessionInput[]) {
+        return computeDay(WORK_DATE, sessions, policy, AFTER);
+    }
+
+    it("caps OT at the 18:00→24:00 window for a shift running past midnight", () => {
+        // Worked 08:00 until 02:00 the next morning.
+        const result = dayAt(MIDNIGHT, [
+            session({
+                checkInAt: local("2026-08-19", "08:00"),
+                checkOutAt: new Date("2026-08-20T02:00:00.000+07:00"),
+            }),
+        ]);
+
+        // 18:00 → 00:00 is six hours; the two hours past midnight belong to the
+        // next business day, not this one.
+        expect(result.otMinutes).toBe(360);
+    });
+
+    it("still gives 4h for an ordinary 08:00 → 22:00 day", () => {
+        const result = dayAt(MIDNIGHT, [
+            session({checkInAt: local("2026-08-19", "08:00"), checkOutAt: local("2026-08-19", "22:00")}),
+        ]);
+
+        expect(result.otMinutes).toBe(240);
     });
 });

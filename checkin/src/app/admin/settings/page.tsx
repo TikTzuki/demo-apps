@@ -5,7 +5,7 @@ import {Alert, Button, inputClass, Panel, PanelHead, Tag} from "@/components/adm
 import {formatDuration} from "@/lib/attendance/time";
 import {PolicyGuide} from "@/components/admin/PolicyGuide";
 import {apiFetch} from "@/lib/api-client";
-import {DEFAULT_POLICY, type AttendancePolicy} from "@/lib/attendance/compute";
+import {type AttendancePolicy, DEFAULT_POLICY} from "@/lib/attendance/compute";
 
 type TimeField = "shiftStartTime" | "lateAfterTime" | "otStartTime" | "overnightStartTime" | "breakStartTime";
 type NumberField = "standardShiftMinutes" | "breakMinutes" | "otMinMinutes" | "maxSessionHours" | "dayCutoffHour";
@@ -23,7 +23,13 @@ const NUMBER_FIELDS: {key: NumberField; label: string; hint: string; min: number
     {key: "breakMinutes", label: "Nghỉ trưa (phút)", hint: "Trừ khỏi giờ thường nếu ca làm đi qua giờ nghỉ.", min: 0, max: 240},
     {key: "otMinMinutes", label: "OT tối thiểu (phút)", hint: "OT ngắn hơn mức này không được tính.", min: 0, max: 240},
     {key: "maxSessionHours", label: "Phiên tối đa (giờ)", hint: "Quá mức này coi là quên check-out.", min: 1, max: 48},
-    {key: "dayCutoffHour", label: "Mốc sang ngày mới (giờ)", hint: "Ca đêm kết thúc trước giờ này vẫn thuộc ngày hôm trước.", min: 0, max: 12},
+    {
+        key: "dayCutoffHour",
+        label: "Ngày công kết thúc (giờ)",
+        hint: "Phiên dừng tính công ở mốc này. 0 = nửa đêm, nên OT tối đa là 18:00→24:00.",
+        min: 0,
+        max: 12
+    },
 ];
 
 export default function AdminSettingsPage() {

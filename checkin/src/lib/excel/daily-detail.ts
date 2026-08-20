@@ -41,14 +41,13 @@ const HEADERS = [
     "Tổng giờ làm (ngày)",
     "Giờ thường (ngày)",
     "Giờ OT (ngày)",
-    "OT qua đêm (ngày)",
     "Trạng thái",
     "Ghi chú",
     "Sửa thủ công",
     "Tự đóng ca",
 ];
 
-const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 18, 26, 30, 14, 20];
+const COLUMN_WIDTHS = [12, 20, 10, 24, 8, 12, 18, 18, 14, 20, 16, 20, 18, 16, 26, 30, 14, 20];
 
 const SUMMARY_HEADERS = [
     "Mã NV",
@@ -58,12 +57,11 @@ const SUMMARY_HEADERS = [
     "Tổng giờ làm",
     "Giờ thường",
     "Giờ OT",
-    "OT qua đêm",
     "Thiếu check-out (ngày)",
     "Tự đóng ca (ngày)",
 ];
 
-const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 14, 22, 18];
+const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 22, 18];
 
 /**
  * Per-person totals for the same range as the detail sheet.
@@ -82,7 +80,6 @@ function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: D
         toHours(t.workedMinutes),
         toHours(t.regularMinutes),
         toHours(t.otMinutes),
-        toHours(t.overnightOtMinutes),
         t.missingCheckoutDays,
         t.autoClosedDays,
     ]);
@@ -95,7 +92,6 @@ function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: D
         toHours(sum((t) => t.workedMinutes)),
         toHours(sum((t) => t.regularMinutes)),
         toHours(sum((t) => t.otMinutes)),
-        toHours(sum((t) => t.overnightOtMinutes)),
         sum((t) => t.missingCheckoutDays),
         sum((t) => t.autoClosedDays),
     ]];
@@ -150,7 +146,6 @@ export function buildDailyDetailWorkbook(
                 isFirst ? formatDuration(row.day.workedMinutes) : "",
                 isFirst ? formatDuration(row.day.regularMinutes) : "",
                 isFirst ? formatDuration(row.day.otMinutes) : "",
-                isFirst ? formatDuration(row.day.overnightOtMinutes) : "",
                 isFirst ? formatStatuses(row.day.statuses) : "",
                 session.note ?? "",
                 session.isManual ? "x" : "",
