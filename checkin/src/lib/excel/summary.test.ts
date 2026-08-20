@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {summarizeByMember, toHours} from "./summary";
+import {summarizeByMember} from "./summary";
 import {computeDay, DEFAULT_POLICY, type SessionInput} from "@/lib/attendance/compute";
 import {parseWorkDateKey} from "@/lib/attendance/time";
 import type {RangeRow} from "@/lib/attendance/queries";
@@ -101,11 +101,3 @@ describe("summarizeByMember", () => {
     });
 });
 
-describe("toHours", () => {
-    it("converts minutes to decimal hours Excel can add up", () => {
-        expect(toHours(480)).toBe(8);
-        expect(toHours(510)).toBe(8.5);
-        expect(toHours(245)).toBe(4.08);
-        expect(toHours(0)).toBe(0);
-    });
-});

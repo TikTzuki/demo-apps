@@ -2,7 +2,8 @@ import * as XLSX from "xlsx";
 import type {AttendancePolicy, DayStatus} from "@/lib/attendance/compute";
 import type {RangeRow} from "@/lib/attendance/queries";
 import {formatDuration, localDateTimeLabel, localTimeLabel, workDateLabel} from "@/lib/attendance/time";
-import {summarizeByMember, toHours} from "./summary";
+import {summarizeByMember} from "./summary";
+import {roundToHalfHour} from "./rounding";
 
 const STATUS_LABELS: Record<DayStatus, string> = {
     ABSENT: "Vắng",
@@ -66,7 +67,11 @@ const SUMMARY_WIDTHS = [10, 24, 20, 14, 14, 13, 12, 22, 18];
  * Per-person totals for the same range as the detail sheet.
  *
  * Hours are written as decimal NUMBERS (8.5, not "8h30") so payroll can sum a
- * column or multiply it by a rate. The detail sheet keeps the readable h:mm form.
+ * column or multiply it by a rate, and rounded to the half hour that people are
+ * actually paid in. Rounding happens once, on each person's total for the whole
+ * range — rounding every day first would pay a different amount.
+ *
+ * The detail sheet keeps exact minutes, so a dispute can always be traced back.
  */
 function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: Date }): XLSX.WorkSheet {
     const totals = summarizeByMember(rows);
@@ -76,28 +81,34 @@ function buildSummarySheet(rows: readonly RangeRow[], range: { from: Date; to: D
         t.memberName,
         t.teamName,
         t.daysWorked,
-        toHours(t.workedMinutes),
-        toHours(t.regularMinutes),
-        toHours(t.otMinutes),
+        roundToHalfHour(t.workedMinutes),
+        roundToHalfHour(t.regularMinutes),
+        roundToHalfHour(t.otMinutes),
         t.missingCheckoutDays,
         t.autoClosedDays,
     ]);
 
     const sum = (pick: (t: (typeof totals)[number]) => number) => totals.reduce((n, t) => n + pick(t), 0);
+    const sumRounded = (pick: (t: (typeof totals)[number]) => number) =>
+        totals.reduce((n, t) => n + roundToHalfHour(pick(t)), 0);
 
     const grandTotal = totals.length === 0 ? [] : [[
         "", `TỔNG (${totals.length} người)`, "",
         sum((t) => t.daysWorked),
-        toHours(sum((t) => t.workedMinutes)),
-        toHours(sum((t) => t.regularMinutes)),
-        toHours(sum((t) => t.otMinutes)),
+        sumRounded((t) => t.workedMinutes),
+        sumRounded((t) => t.regularMinutes),
+        sumRounded((t) => t.otMinutes),
         sum((t) => t.missingCheckoutDays),
         sum((t) => t.autoClosedDays),
     ]];
 
     const sheetData = [
         [`Tổng công: ${workDateLabel(range.from)} — ${workDateLabel(range.to)}`],
-        ["Đơn vị giờ: số thập phân (8.5 = 8 giờ 30 phút). Chi tiết từng phiên xem sheet \"Chi tiết chấm công\"."],
+        [
+            "Giờ đã làm tròn tới 0,5 giờ — dưới 15 phút bỏ, từ 15 phút tính 0,5 giờ, từ 45 phút tính 1 giờ.",
+            "Làm tròn trên TỔNG của cả kỳ, không phải từng ngày.",
+            "Giờ chính xác từng phiên xem sheet \"Chi tiết chấm công\".",
+        ],
         [],
         SUMMARY_HEADERS,
         ...body,

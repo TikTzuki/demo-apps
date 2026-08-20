@@ -61,8 +61,3 @@ export function summarizeByMember(rows: readonly RangeRow[]): MemberTotals[] {
             a.memberName.localeCompare(b.memberName, "vi")
     );
 }
-
-/** Minutes as decimal hours, so the spreadsheet can sum and multiply them. */
-export function toHours(minutes: number): number {
-    return Math.round((minutes / 60) * 100) / 100;
-}
