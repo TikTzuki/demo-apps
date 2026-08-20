@@ -27,7 +27,6 @@ export interface SerializedDayRow {
     workedMinutes: number;
     regularMinutes: number;
     otMinutes: number;
-    overnightOtMinutes: number;
     statuses: DayStatus[];
     sessions: SerializedSession[];
 }
@@ -44,7 +43,6 @@ export function serializeRangeRow(row: RangeRow): SerializedDayRow {
         workedMinutes: row.day.workedMinutes,
         regularMinutes: row.day.regularMinutes,
         otMinutes: row.day.otMinutes,
-        overnightOtMinutes: row.day.overnightOtMinutes,
         statuses: row.day.statuses,
         sessions: row.day.sessions.map((s) => ({
             id: s.id,

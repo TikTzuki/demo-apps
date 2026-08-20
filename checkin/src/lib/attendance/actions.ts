@@ -1,5 +1,5 @@
 import {prisma} from "@/lib/prisma";
-import {classifyKind, type AttendancePolicy} from "./compute";
+import {type AttendancePolicy, classifyKind} from "./compute";
 import {findOpenSession, getMemberDay} from "./queries";
 import {MINUTE_MS, workDateOf} from "./time";
 import {sweepNow} from "./sweep";
@@ -15,7 +15,6 @@ export interface ActionResult {
         workedMinutes: number;
         regularMinutes: number;
         otMinutes: number;
-        overnightOtMinutes: number;
     };
 }
 
@@ -65,7 +64,6 @@ export async function checkIn(memberId: string, policy: AttendancePolicy, now: D
             workedMinutes: day.workedMinutes,
             regularMinutes: day.regularMinutes,
             otMinutes: day.otMinutes,
-            overnightOtMinutes: day.overnightOtMinutes,
         },
     };
 }
@@ -104,7 +102,6 @@ export async function checkOut(memberId: string, policy: AttendancePolicy, now: 
             workedMinutes: day.workedMinutes,
             regularMinutes: day.regularMinutes,
             otMinutes: day.otMinutes,
-            overnightOtMinutes: day.overnightOtMinutes,
         },
     };
 }

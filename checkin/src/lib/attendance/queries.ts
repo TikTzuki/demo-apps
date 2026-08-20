@@ -1,6 +1,6 @@
 import {prisma} from "@/lib/prisma";
 import {type AttendancePolicy, computeDay, type DaySummary, type SessionInput} from "./compute";
-import {parseHHmm, localMinutesOfDay, workDateOf} from "./time";
+import {localMinutesOfDay, parseHHmm, workDateOf} from "./time";
 import type {MemberAttendance, TeamAttendance} from "@/lib/types";
 
 /** Rows as Prisma returns them, narrowed to what the computation needs. */
@@ -71,7 +71,6 @@ function toMemberAttendance(
         workedMinutes: day.workedMinutes,
         regularMinutes: day.regularMinutes,
         otMinutes: day.otMinutes,
-        overnightOtMinutes: day.overnightOtMinutes,
         statuses: day.statuses,
         canCheckInOvernight: state === "DONE" && pastOvernightStart,
     };

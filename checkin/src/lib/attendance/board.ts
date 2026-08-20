@@ -30,7 +30,7 @@ export async function getBoard(now = new Date()): Promise<AttendanceBoard> {
             done: members.filter((m) => m.state === "DONE").length,
             absent: members.filter((m) => m.state === "OUT").length,
             onOt: members.filter((m) => m.otMinutes > 0).length,
-            onOvernight: members.filter((m) => m.overnightOtMinutes > 0 || m.isOvernightSession).length,
+            onOvernight: members.filter((m) => m.isOvernightSession).length,
         },
     };
 }

@@ -11,7 +11,6 @@ const STATUS_LABELS: Record<DayStatus, string> = {
     LATE: "Đi muộn",
     EARLY_LEAVE: "Về sớm",
     OT: "OT",
-    OT_OVERNIGHT: "OT qua đêm",
     MISSING_CHECKOUT: "Thiếu check-out",
     AUTO_CLOSED: "Tự đóng ca — chờ duyệt",
 };

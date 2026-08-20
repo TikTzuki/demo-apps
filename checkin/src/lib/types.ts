@@ -19,7 +19,6 @@ export interface MemberAttendance {
     workedMinutes: number;
     regularMinutes: number;
     otMinutes: number;
-    overnightOtMinutes: number;
     statuses: DayStatus[];
     /** Already went home, and it is late enough to start a night shift. */
     canCheckInOvernight: boolean;

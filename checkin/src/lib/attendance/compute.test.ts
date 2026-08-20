@@ -36,7 +36,6 @@ describe("computeDay — the shifts described in the brief", () => {
         // 10h on the clock minus the 90-minute break = 8.5h, capped at the 8h standard shift.
         expect(result.regularMinutes).toBe(480);
         expect(result.otMinutes).toBe(0);
-        expect(result.overnightOtMinutes).toBe(0);
         expect(result.statuses).toContain("PRESENT");
         expect(result.statuses).not.toContain("OT");
     });
@@ -48,7 +47,6 @@ describe("computeDay — the shifts described in the brief", () => {
 
         expect(result.regularMinutes).toBe(480);
         expect(result.otMinutes).toBe(240);
-        expect(result.overnightOtMinutes).toBe(0);
         expect(result.statuses).toContain("OT");
     });
 
@@ -61,7 +59,7 @@ describe("computeDay — the shifts described in the brief", () => {
         expect(result.statuses).toContain("OT");
     });
 
-    it("splits an overnight return into its own OT bucket, capped at midnight", () => {
+    it("adds a night return to the day's overtime, capped at midnight", () => {
         const result = day([
             session({
                 id: "day",
@@ -78,10 +76,10 @@ describe("computeDay — the shifts described in the brief", () => {
 
         expect(result.regularMinutes).toBe(480);
         // 18:00→18:30 is 30 minutes; the night leg counts 22:00→00:00 only —
-        // the two hours past midnight belong to the next business day.
+        // the two hours past midnight belong to the next business day. Night
+        // overtime is not tallied apart: it is the same rate.
         expect(result.otMinutes).toBe(30 + 120);
-        expect(result.overnightOtMinutes).toBe(120);
-        expect(result.statuses).toContain("OT_OVERNIGHT");
+        expect(result.statuses).toContain("OT");
         expect(result.sessions).toHaveLength(2);
     });
 });
@@ -225,5 +223,36 @@ describe("day cutoff at midnight — max 6h OT per day", () => {
         ]);
 
         expect(result.otMinutes).toBe(240);
+    });
+});
+
+describe("night shift crossing midnight", () => {
+    it("counts 22:00 → 02:00 as 2h OT, measured 22:00 → 00:00", () => {
+        const result = day([
+            session({
+                kind: "OVERNIGHT",
+                checkInAt: local("2026-08-19", "22:00"),
+                checkOutAt: new Date("2026-08-20T02:00:00.000+07:00"),
+            }),
+        ]);
+
+        // The two hours after midnight fall in the next business day and are
+        // not credited here — 22:00 → 00:00 is the whole of it.
+        expect(result.otMinutes).toBe(120);
+        expect(result.regularMinutes).toBe(0);
+        expect(result.workedMinutes).toBe(120);
+    });
+
+    it("gives the same 2h whether the shift ends at 02:00 or 05:00", () => {
+        const at = (end: string) => day([
+            session({
+                kind: "OVERNIGHT",
+                checkInAt: local("2026-08-19", "22:00"),
+                checkOutAt: new Date(`2026-08-20T${end}:00.000+07:00`),
+            }),
+        ]).otMinutes;
+
+        expect(at("02:00")).toBe(120);
+        expect(at("05:00")).toBe(120);
     });
 });

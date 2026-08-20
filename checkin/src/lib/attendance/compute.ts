@@ -29,7 +29,6 @@ export type DayStatus =
     | "LATE"
     | "EARLY_LEAVE"
     | "OT"
-    | "OT_OVERNIGHT"
     | "MISSING_CHECKOUT";
 
 export interface AttendancePolicy extends TimePolicy {
@@ -94,10 +93,13 @@ export interface DaySummary {
     workedMinutes: number;
     /** Normal hours, capped at the standard shift. */
     regularMinutes: number;
-    /** Overtime, after the minimum-OT threshold is applied. */
+    /**
+     * Overtime, after the minimum-OT threshold is applied.
+     *
+     * Night-shift overtime is not tracked apart from this: it is paid at the
+     * same rate, so a separate tally had no consumer.
+     */
     otMinutes: number;
-    /** The slice of `otMinutes` earned on an overnight session. */
-    overnightOtMinutes: number;
     firstCheckInAt: Date | null;
     lastCheckOutAt: Date | null;
     isWorking: boolean;
@@ -181,14 +183,9 @@ export function computeDay(
 
     const regularRaw = summaries.reduce((sum, s) => sum + s.regularMinutes, 0);
     const otRaw = summaries.reduce((sum, s) => sum + s.otMinutes, 0);
-    const overnightRaw = summaries
-        .filter((s) => s.kind === "OVERNIGHT")
-        .reduce((sum, s) => sum + s.otMinutes, 0);
-
     // Short overruns are not overtime — otherwise every 18:05 departure files a claim.
     const meetsThreshold = otRaw >= policy.otMinMinutes;
     const otMinutes = meetsThreshold ? otRaw : 0;
-    const overnightOtMinutes = meetsThreshold ? overnightRaw : 0;
 
     const closed = summaries.filter((s) => !s.isOpen);
     const isWorking = summaries.some((s) => s.isOpen && !s.isStale);
@@ -208,7 +205,6 @@ export function computeDay(
         workedMinutes: regularRaw + otRaw,
         regularMinutes: Math.min(regularRaw, policy.standardShiftMinutes),
         otMinutes,
-        overnightOtMinutes,
         firstCheckInAt,
         lastCheckOutAt,
         isWorking,
@@ -218,7 +214,6 @@ export function computeDay(
             firstCheckInAt,
             lastCheckOutAt,
             otMinutes,
-            overnightOtMinutes,
             isWorking,
             hasStale,
         }),
@@ -231,11 +226,10 @@ function deriveStatuses(input: {
     firstCheckInAt: Date | null;
     lastCheckOutAt: Date | null;
     otMinutes: number;
-    overnightOtMinutes: number;
     isWorking: boolean;
     hasStale: boolean;
 }): DayStatus[] {
-    const {policy, summaries, firstCheckInAt, lastCheckOutAt, otMinutes, overnightOtMinutes} = input;
+    const {policy, summaries, firstCheckInAt, lastCheckOutAt, otMinutes} = input;
 
     if (summaries.length === 0) {
         return ["ABSENT"];
@@ -270,7 +264,6 @@ function deriveStatuses(input: {
     if (summaries.some((s) => s.autoClosedAt && !s.reviewedAt)) statuses.push("AUTO_CLOSED");
 
     if (otMinutes > 0) statuses.push("OT");
-    if (overnightOtMinutes > 0) statuses.push("OT_OVERNIGHT");
 
     return statuses;
 }

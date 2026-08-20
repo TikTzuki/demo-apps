@@ -75,9 +75,13 @@ export function PolicyGuide({policy}: { policy: AttendancePolicy }) {
                         n="4"
                         title={`Ca đêm là ca bắt đầu từ ${overnightStartTime}`}
                     >
-                        Phân biệt <strong>làm muộn</strong> với <strong>ca đêm</strong>: người ở lại tới 23:00 vẫn là
-                        ca ngày có OT; người check-in <em>sau</em> {overnightStartTime} được ghi là ca đêm và giờ OT
-                        của họ hiện ở cột riêng. Cột này để trả phụ cấp đêm khác mức OT thường.
+                        Ca đêm <strong>không có mức OT riêng</strong> — giờ làm sau {otStartTime} đều là OT như nhau,
+                        dù bắt đầu lúc 19:00 hay 22:00.
+                        <p className="mt-2">
+                            Đánh dấu ca đêm chỉ phục vụ một việc: người đã check-out trong ngày vẫn được
+                            check-in lần nữa sau {overnightStartTime} để làm thêm một ca. Nếu không có mốc này,
+                            hệ thống sẽ coi họ là đã xong việc và không cho vào ca tiếp.
+                        </p>
                     </Section>
 
                     <Section

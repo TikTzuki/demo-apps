@@ -2,7 +2,7 @@
 
 import {useCallback, useEffect, useState} from "react";
 import {CalendarRange, Download, Moon, Pencil} from "lucide-react";
-import {Alert, Button, EmptyState, inputClass, Panel, Tag, TableSkeleton} from "@/components/admin/Ui";
+import {Alert, Button, EmptyState, inputClass, Panel, TableSkeleton, Tag} from "@/components/admin/Ui";
 import {SessionEditModal} from "@/components/admin/SessionEditModal";
 import {apiFetch, downloadFile} from "@/lib/api-client";
 import {formatDuration, localTimeLabel} from "@/lib/attendance/time";
@@ -55,9 +55,8 @@ export default function AdminAttendancePage() {
         (acc, r) => ({
             worked: acc.worked + r.workedMinutes,
             ot: acc.ot + r.otMinutes,
-            overnight: acc.overnight + r.overnightOtMinutes,
         }),
-        {worked: 0, ot: 0, overnight: 0}
+        {worked: 0, ot: 0}
     );
 
     return (
@@ -77,7 +76,6 @@ export default function AdminAttendancePage() {
                 <div className="flex items-center gap-6 rounded-lg border border-zinc-200 bg-white px-5 py-2.5">
                     <Summary label="Tổng giờ" value={formatDuration(totals.worked)}/>
                     <Summary label="OT" value={formatDuration(totals.ot)} tone="text-amber-700"/>
-                    <Summary label="OT đêm" value={formatDuration(totals.overnight)} tone="text-indigo-700"/>
                 </div>
 
                 <Button variant="primary" onClick={handleExport}>
@@ -104,7 +102,7 @@ export default function AdminAttendancePage() {
                     />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm min-w-[980px]">
+                        <table className="w-full text-sm min-w-[900px]">
                             <thead className="bg-zinc-50 border-b border-zinc-200">
                             <tr className="text-xs uppercase tracking-wide text-zinc-500 text-left">
                                 <th className="px-4 py-2.5 font-semibold">Ngày công</th>
@@ -112,7 +110,6 @@ export default function AdminAttendancePage() {
                                 <th className="px-4 py-2.5 font-semibold">Phiên làm việc</th>
                                 <th className="px-4 py-2.5 font-semibold text-right">Giờ thường</th>
                                 <th className="px-4 py-2.5 font-semibold text-right">OT</th>
-                                <th className="px-4 py-2.5 font-semibold text-right">OT đêm</th>
                                 <th className="px-4 py-2.5 font-semibold">Trạng thái</th>
                             </tr>
                             </thead>
@@ -158,13 +155,9 @@ export default function AdminAttendancePage() {
                                     <td className={cn("px-4 py-2.5 font-mono text-[13px] text-right", row.otMinutes > 0 ? "font-medium text-amber-700" : "text-zinc-400")}>
                                         {row.otMinutes > 0 ? formatDuration(row.otMinutes) : "—"}
                                     </td>
-                                    <td className={cn("px-4 py-2.5 font-mono text-[13px] text-right", row.overnightOtMinutes > 0 ? "font-medium text-indigo-700" : "text-zinc-400")}>
-                                        {row.overnightOtMinutes > 0 ? formatDuration(row.overnightOtMinutes) : "—"}
-                                    </td>
                                     <td className="px-4 py-2.5">
                                         <span className="flex flex-wrap gap-1.5">
                                             {row.otMinutes > 0 && <Tag tone="ot">OT</Tag>}
-                                            {row.overnightOtMinutes > 0 && <Tag tone="overnight">OT qua đêm</Tag>}
                                             {row.statuses.includes("AUTO_CLOSED") && <Tag tone="ot">Chờ duyệt</Tag>}
                                             {row.statuses.includes("MISSING_CHECKOUT") && <Tag tone="danger">Thiếu check-out</Tag>}
                                         </span>

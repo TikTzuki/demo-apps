@@ -28,7 +28,6 @@ function SuccessContent() {
     const at = params.get("at");
     const worked = Number(params.get("worked") ?? 0);
     const ot = Number(params.get("ot") ?? 0);
-    const overnightOt = Number(params.get("overnight") ?? 0);
 
     // A wall tablet must return to the picker by itself — nobody presses Back.
     useEffect(() => {
@@ -91,9 +90,7 @@ function SuccessContent() {
                 {isCheckOut && ot > 0 && (
                     <div className={cn("burst-rise flex items-center gap-3 rounded-xl bg-ink-raised px-5 py-4 border-l-4", theme.border)}>
                         <span className="text-base text-zinc-300">
-                            {overnightOt > 0
-                                ? <>Trong đó <strong className={theme.text}>{formatDuration(overnightOt)}</strong> là OT qua đêm.</>
-                                : <>OT tính từ 18:00 — hôm nay bạn làm thêm <strong className={theme.text}>{formatDuration(ot)}</strong>.</>}
+                            Hôm nay bạn làm thêm <strong className={theme.text}>{formatDuration(ot)}</strong>.
                         </span>
                     </div>
                 )}

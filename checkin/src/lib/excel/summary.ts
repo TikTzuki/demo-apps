@@ -19,7 +19,6 @@ export interface MemberTotals {
     workedMinutes: number;
     regularMinutes: number;
     otMinutes: number;
-    overnightOtMinutes: number;
     missingCheckoutDays: number;
     autoClosedDays: number;
 }
@@ -37,7 +36,6 @@ export function summarizeByMember(rows: readonly RangeRow[]): MemberTotals[] {
             workedMinutes: 0,
             regularMinutes: 0,
             otMinutes: 0,
-            overnightOtMinutes: 0,
             missingCheckoutDays: 0,
             autoClosedDays: 0,
         };
@@ -53,7 +51,6 @@ export function summarizeByMember(rows: readonly RangeRow[]): MemberTotals[] {
             workedMinutes: base.workedMinutes + row.day.workedMinutes,
             regularMinutes: base.regularMinutes + row.day.regularMinutes,
             otMinutes: base.otMinutes + row.day.otMinutes,
-            overnightOtMinutes: base.overnightOtMinutes + row.day.overnightOtMinutes,
             missingCheckoutDays: base.missingCheckoutDays + (has("MISSING_CHECKOUT") ? 1 : 0),
         });
     }

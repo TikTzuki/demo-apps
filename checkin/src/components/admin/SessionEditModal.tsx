@@ -12,7 +12,7 @@ interface SessionEditModalProps {
     memberName: string;
     workDate: string;
     /** Day totals as they stand now, so the admin sees what they are changing. */
-    totals: { regularMinutes: number; otMinutes: number; overnightOtMinutes: number } | null;
+    totals: { regularMinutes: number; otMinutes: number } | null;
     maxSessionHours?: number;
     onClose: () => void;
     onSaved: () => void;
@@ -151,9 +151,6 @@ export function SessionEditModal({
                             <span className="flex flex-wrap gap-2">
                                 <Tag>{formatDuration(totals.regularMinutes)} thường</Tag>
                                 {totals.otMinutes > 0 && <Tag tone="ot">{formatDuration(totals.otMinutes)} OT</Tag>}
-                                {totals.overnightOtMinutes > 0 && (
-                                    <Tag tone="overnight">{formatDuration(totals.overnightOtMinutes)} qua đêm</Tag>
-                                )}
                             </span>
                         </div>
                     )}

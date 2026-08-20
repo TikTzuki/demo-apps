@@ -14,7 +14,11 @@ const TIME_FIELDS: {key: TimeField; label: string; hint: string}[] = [
     {key: "shiftStartTime", label: "Giờ bắt đầu ca", hint: "Giờ vào ca tiêu chuẩn buổi sáng."},
     {key: "lateAfterTime", label: "Đi muộn sau", hint: "Check-in sau giờ này bị đánh dấu đi muộn."},
     {key: "otStartTime", label: "OT tính từ", hint: "Mọi phút làm sau giờ này đều tính là OT."},
-    {key: "overnightStartTime", label: "Ca đêm từ", hint: "Check-in sau giờ này được coi là ca đêm."},
+    {
+        key: "overnightStartTime",
+        label: "Ca đêm từ",
+        hint: "Người đã check-out được vào ca lần nữa sau giờ này. Không đổi mức OT."
+    },
     {key: "breakStartTime", label: "Bắt đầu nghỉ trưa", hint: "Mốc bắt đầu trừ giờ nghỉ."},
 ];
 

@@ -52,7 +52,6 @@ describe("summarizeByMember", () => {
             daysWorked: 2,
             regularMinutes: 960,   // 8h + 8h
             otMinutes: 240,        // 0 + 4h
-            overnightOtMinutes: 0,
         });
     });
 
@@ -67,9 +66,9 @@ describe("summarizeByMember", () => {
         // Two sessions, one business day.
         expect(totals[0].daysWorked).toBe(1);
         expect(totals[0].regularMinutes).toBe(480);
-        // Night leg counts only to midnight under the midnight cutoff.
+        // Night leg counts only to midnight under the midnight cutoff, and lands
+        // in the single OT figure.
         expect(totals[0].otMinutes).toBe(30 + 120);
-        expect(totals[0].overnightOtMinutes).toBe(120);
     });
 
     it("keeps people separate and sorts by team then name", () => {

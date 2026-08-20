@@ -62,7 +62,6 @@ export default function TeamPage() {
                 at: r.at,
                 worked: String(r.workedMinutes),
                 ot: String(r.otMinutes),
-                overnight: String(r.overnightOtMinutes),
             });
             router.push(`/success?${query.toString()}`);
         } catch {
