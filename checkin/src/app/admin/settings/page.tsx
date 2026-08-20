@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {Alert, Button, inputClass, Panel, PanelHead, Tag} from "@/components/admin/Ui";
 import {formatDuration} from "@/lib/attendance/time";
+import {buildPolicyExamples} from "@/lib/attendance/examples";
 import {PolicyGuide} from "@/components/admin/PolicyGuide";
 import {apiFetch} from "@/lib/api-client";
 import {type AttendancePolicy, DEFAULT_POLICY} from "@/lib/attendance/compute";
@@ -94,16 +95,9 @@ export default function AdminSettingsPage() {
         return <p className="text-zinc-500">{error ?? "Đang tải..."}</p>;
     }
 
-    // Worked examples recomputed from whatever is on screen, so the consequence
-    // of a threshold change is visible before it is saved.
-    const otBoundary = Number(policy.otStartTime.slice(0, 2)) * 60 + Number(policy.otStartTime.slice(3));
-    const shiftStart = Number(policy.shiftStartTime.slice(0, 2)) * 60 + Number(policy.shiftStartTime.slice(3));
-    const cap = policy.standardShiftMinutes;
-    const examples = [
-        {shift: `${policy.shiftStartTime} → ${policy.otStartTime}`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 0, overnight: 0},
-        {shift: `${policy.shiftStartTime} → 22:00`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 22 * 60 - otBoundary, overnight: 0},
-        {shift: `${policy.shiftStartTime} → 18:30, quay lại 22:00 → 02:00`, regular: Math.min(cap, otBoundary - shiftStart - policy.breakMinutes), ot: 30 + 240, overnight: 240},
-    ];
+    // Run through the real computation, so the panel cannot drift from the rules
+    // it claims to describe — and updates before the form is even saved.
+    const examples = buildPolicyExamples(policy);
 
     return (
         <div className="flex flex-col gap-6">
@@ -178,11 +172,10 @@ export default function AdminSettingsPage() {
                                 <div key={ex.shift} className="flex flex-col gap-2 pb-3 border-b border-zinc-100 last:border-0 last:pb-0">
                                     <span className="font-mono text-xs text-zinc-600">{ex.shift}</span>
                                     <span className="flex flex-wrap gap-1.5">
-                                        <Tag>{formatDuration(ex.regular)} thường</Tag>
-                                        {ex.ot > 0
-                                            ? <Tag tone="ot">{formatDuration(ex.ot)} OT</Tag>
+                                        <Tag>{formatDuration(ex.regularMinutes)} thường</Tag>
+                                        {ex.otMinutes > 0
+                                            ? <Tag tone="ot">{formatDuration(ex.otMinutes)} OT</Tag>
                                             : <Tag>không OT</Tag>}
-                                        {ex.overnight > 0 && <Tag tone="overnight">{formatDuration(ex.overnight)} qua đêm</Tag>}
                                     </span>
                                 </div>
                             ))}
